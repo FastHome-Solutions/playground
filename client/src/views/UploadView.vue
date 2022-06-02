@@ -1,18 +1,18 @@
 <template>
-  <hello-world />
+  <upload />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 
 // Components
-import HelloWorld from '../components/HelloWorld.vue';
+import Upload from '../components/Upload.vue';
 
 export default defineComponent({
-  name: 'HomeView',
+  name: 'UploadView',
 
   components: {
-    HelloWorld,
+    Upload,
   },
 });
 </script>
