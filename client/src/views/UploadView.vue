@@ -1,13 +1,11 @@
 <template>
   <v-container fill-height>
-    <v-row justify="center">
-      <v-col cols="auto">
-        <upload @uploaded-file="uploadedFile" />
-      </v-col>
-      <v-col cols="auto">
-        <sheet :benefitMatrix="benefitMatrix" />
-      </v-col>
-    </v-row>
+    <div justify="center">
+      <upload @uploaded-file="uploadedFile" />
+    </div>
+    <div justify="center">
+      <sheet :benefitMatrix="benefitMatrix" />
+    </div>
   </v-container>
 </template>
 
