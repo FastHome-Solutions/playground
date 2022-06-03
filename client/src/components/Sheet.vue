@@ -2,7 +2,6 @@
     <v-card width="100%" height="100%" raised v-if="benefitMatrix !== null" class="mt-4">
         <v-card-title>Benefit Matrix:</v-card-title>
         <v-card-text>
-
             <v-table>
                 <thead>
                     <tr>
