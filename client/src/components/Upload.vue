@@ -32,9 +32,6 @@ export default {
      */
     uploadFile(event) {
       var chosenFile = event.target.files[0];
-
-      console.log('upload' + chosenFile)
-
       const reader = new FileReader();
 
       reader.onload = (progressEvent) => {
@@ -78,6 +75,7 @@ export default {
             return element !== null
           })
           const tariffDetails = new TariffDetails(
+            i,
             filteredRow[0],
             filteredRow[1],
             filteredRow[2],
