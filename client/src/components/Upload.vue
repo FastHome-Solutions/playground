@@ -1,18 +1,14 @@
 <template>
-  <v-card width="600" height="300" raised class="mx-auto">
+  <v-card width="600" height="160" raised class="mx-auto">
     <v-card-title>Upload spreadsheet</v-card-title>
     <br>
     <v-card-text>
       <v-file-input accept="application/vnd.ms-excel, application/msexcel, application/x-msexcel, application/x-ms-excel, 
     application/x-excel, application/x-dos_ms_excel, application/xls, application/x-xls,
     application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" label="Click here to select a file to upload"
-        outlined @change="uploadFile" show-size placeholder="Pick a file to upload">
+        outlined @change="uploadFile" show-size placeholder="Pick a file to upload" >
       </v-file-input>
     </v-card-text>
-    <v-card-actions>
-      <v-spacer></v-spacer>
-      <v-btn right @click="uploadFile">Upload</v-btn>
-    </v-card-actions>
   </v-card>
 </template>
 <script lang="ts">
@@ -20,10 +16,6 @@ import { read, readFile, utils, writeXLSX } from "xlsx"
 import BenefitMatrix, { Header, TariffDetails } from "./BenefitMatrix"
 
 export default {
-  data() {
-    return {
-    }
-  },
   methods: {
     /**
      * Currently, this function isn't actually uploading, just parsing.
@@ -71,7 +63,7 @@ export default {
         const tariffData: TariffDetails[] = []
         for (let i = 76; i < 108; i++) {
           const row = rows[i]
-          const filteredRow = row.filter(element => { 
+          const filteredRow = row.filter(element => {
             //TODO: If there are things written to the left (such as 'Preissenkung'), 
             //this destroys the whole logic
             return element !== null
