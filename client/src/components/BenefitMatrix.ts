@@ -49,6 +49,7 @@ export class Header {
 }
 
 export class TariffDetails {
+    id: Number
     manufacturer: String
     device: String
     parcialPayment: Number
@@ -61,6 +62,7 @@ export class TariffDetails {
     offerAllnetXL: Number
     offerAllnetPlus: Number
     constructor(
+        id: Number,
         manufacturer: String,
         device: String,
         parcialPayment: Number,
@@ -72,6 +74,7 @@ export class TariffDetails {
         offerAllnetL: Number,
         offerAllnetXL: Number,
         offerAllnetPlus: Number) {
+        this.id = id
         this.manufacturer = manufacturer
         this.device = device
         this.parcialPayment = parcialPayment
