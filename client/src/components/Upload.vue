@@ -1,5 +1,5 @@
 <template>
-  <v-card width="600" height="300" raised>
+  <v-card width="600" height="300" raised class="mx-auto">
     <v-card-title>Upload spreadsheet</v-card-title>
     <br>
     <v-card-text>
@@ -71,7 +71,9 @@ export default {
         const tariffData: TariffDetails[] = []
         for (let i = 76; i < 108; i++) {
           const row = rows[i]
-          const filteredRow = row.filter(element => {
+          const filteredRow = row.filter(element => { 
+            //TODO: If there are things written to the left (such as 'Preissenkung'), 
+            //this destroys the whole logic
             return element !== null
           })
           const tariffDetails = new TariffDetails(
