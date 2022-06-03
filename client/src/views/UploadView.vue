@@ -1,7 +1,14 @@
 <template>
-  <!-- todo: nice design here -->
-  <upload @uploaded-file="uploadedFile" />
-  <sheet :benefitMatrix="benefitMatrix" />
+  <v-container fill-height>
+    <v-row justify="center">
+      <v-col cols="auto">
+        <upload @uploaded-file="uploadedFile" />
+      </v-col>
+      <v-col cols="auto">
+        <sheet :benefitMatrix="benefitMatrix" />
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script lang="ts">
