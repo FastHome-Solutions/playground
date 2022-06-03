@@ -12,7 +12,7 @@
   </v-card>
 </template>
 <script lang="ts">
-import { read, readFile, utils, writeXLSX } from "xlsx"
+import { read, utils } from "xlsx"
 import BenefitMatrix, { Header, TariffDetails } from "./BenefitMatrix"
 
 export default {
@@ -63,24 +63,20 @@ export default {
         const tariffData: TariffDetails[] = []
         for (let i = 76; i < 108; i++) {
           const row = rows[i]
-          const filteredRow = row.filter(element => {
-            //TODO: If there are things written to the left (such as 'Preissenkung'), 
-            //this destroys the whole logic
-            return element !== null
-          })
+          row.splice(0, 3) // filter out the leftmost cell
           const tariffDetails = new TariffDetails(
             i,
-            filteredRow[0],
-            filteredRow[1],
-            filteredRow[2],
-            filteredRow[3],
-            filteredRow[4],
-            filteredRow[5],
-            filteredRow[6],
-            filteredRow[7],
-            filteredRow[8],
-            filteredRow[9],
-            filteredRow[10]
+            row[0],
+            row[1],
+            row[2],
+            row[3],
+            row[4],
+            row[5],
+            row[6],
+            row[7],
+            row[8],
+            row[9],
+            row[10]
           )
           tariffData.push(tariffDetails)
         }
