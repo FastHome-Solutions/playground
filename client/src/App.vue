@@ -1,7 +1,9 @@
 <template>
   <v-app>
     <v-main>
-      <router-view/>
+      <v-container fill-height>
+        <router-view />
+      </v-container>
     </v-main>
   </v-app>
 </template>
@@ -12,7 +14,7 @@ import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'App',
 
-  data () {
+  data() {
     return {
       //
     }
