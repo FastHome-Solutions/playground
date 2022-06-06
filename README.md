@@ -10,3 +10,6 @@ https://docs.nestjs.com/#installation
 
 NOTE: The server folder contains a git repo - remove it.
 
+https://docs.nestjs.com/techniques/mongodb
+
+`npm install --save @nestjs/mongoose@8 mongoose@5`
