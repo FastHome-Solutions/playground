@@ -1,16 +1,22 @@
-import { NotFoundException } from "@nestjs/common";
-import { Args, Query, Resolver } from "@nestjs/graphql";
+import { NotFoundException, Logger } from "@nestjs/common";
+import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { BanefitMatricesService } from "./benefit-matrices.service";
 import { BenefitMatrix } from "./schemas/benefit-matrix.schema";
 import { BenefitMatricesArgs } from "./dto/benefit-matrices.args";
+import { CreateBenefitMatrixDto } from "./dto/create-benefit-matrix.dto";
 
 @Resolver(of => BenefitMatrix)
 export class BenefitMatrixResolver {
-  constructor (private readonly benefitMatricesService: BanefitMatricesService) { }
+  private logger: Logger;
+
+  constructor (private readonly benefitMatricesService: BanefitMatricesService) {
+    this.logger = new Logger('BanefitMatricesService', { timestamp: false });
+  }
 
   @Query(returns => [BenefitMatrix])
   benefitMatrices(@Args() benefitMatricesArgs: BenefitMatricesArgs): Promise<BenefitMatrix[]> {
-    return this.benefitMatricesService.findAll(benefitMatricesArgs);
+    this.logger.log(`benefitMatrices called with ${JSON.stringify(benefitMatricesArgs)}`);
+    return this.benefitMatricesService.findAll({});
   }
 
   @Query(returns => BenefitMatrix)
@@ -21,4 +27,9 @@ export class BenefitMatrixResolver {
     }
     return benefitMatrix;
   }
-}
+
+  @Mutation(returns => BenefitMatrix)
+  async createBenefitMatrix(@Args('benefitMatrix') benefitMatrix: CreateBenefitMatrixDto) {
+      return await this.benefitMatricesService.create(benefitMatrix);
+  }
+} 

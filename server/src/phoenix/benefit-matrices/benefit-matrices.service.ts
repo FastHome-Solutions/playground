@@ -14,7 +14,7 @@ export class BanefitMatricesService {
   }
 
   async create (createBenefitMatrixDto: CreateBenefitMatrixDto): Promise<BenefitMatrix> {
-    this.logger.log('create called');
+    this.logger.log(`create called with ${JSON.stringify(createBenefitMatrixDto)}`);
     const createdBenefitMatrix = new this.benefitMatrixModel(createBenefitMatrixDto);
     return await createdBenefitMatrix.save();
   }
