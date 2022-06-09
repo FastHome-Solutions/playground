@@ -14,7 +14,11 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false"
   },
   "dependencies": {
+    "@apollo/client": "^3.6.6",
     "@mdi/font": "5.9.55",
+    "@vue/apollo-option": "^4.0.0-alpha.17",
+    "graphql": "^16.5.0",
+    "graphql-tag": "^2.12.6",
     "pinia": "^2.0.14",
     "roboto-fontface": "*",
     "vue": "^3.2.36",
