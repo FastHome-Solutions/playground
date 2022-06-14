@@ -6,7 +6,7 @@
       <v-file-input accept="application/vnd.ms-excel, application/msexcel, application/x-msexcel, application/x-ms-excel, 
     application/x-excel, application/x-dos_ms_excel, application/xls, application/x-xls,
     application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" label="Click here to select a file to upload"
-        outlined @change="uploadFile" show-size placeholder="Pick a file to upload" >
+        outlined @change="uploadFile" show-size placeholder="Pick a file to upload">
       </v-file-input>
     </v-card-text>
   </v-card>
@@ -14,6 +14,9 @@
 <script lang="ts">
 import { read, utils } from "xlsx"
 import BenefitMatrix, { Header, TariffDetails } from "./BenefitMatrix"
+import gql from 'graphql-tag'
+import { CreateBenefitMatrixDto, Period, OfferDto, MetaOfferDto } from "@/dto/create-benefit-matrix.dto"
+
 
 export default {
   methods: {
@@ -83,9 +86,63 @@ export default {
 
         const benefitMatrix = new BenefitMatrix(header, tariffData)
         this.$emit('uploaded-file', benefitMatrix)
+
+        // Transform to format used on the 
+        // TODO: parse
+        const period = new Period(
+          new Date('2022-06-09'),
+          new Date('2022-06-16'),
+        )
+
+        const offers = [
+          new OfferDto(
+            24,
+            'Allnet XL',
+            -1.5,
+            'vouchername',
+            1,
+            34.99
+          )
+        ]
+
+        const metaOffers = [
+          new MetaOfferDto (
+            'Apple',
+            'iPhone 16',
+            519,
+            offers
+          )
+        ]
+
+        const benefitMatrixDto = new CreateBenefitMatrixDto(
+            'Blau',
+            period,
+            'Online',
+            ['Allnet L', 'Allnet XL'],
+            metaOffers
+        )
+
+        // to the server!
+        this.$apollo.mutate({
+          mutation: gql`mutation CreateBenefitMatrix($benefitMatrix: CreateBenefitMatrixDto!) {
+            createBenefitMatrix(benefitMatrix: $benefitMatrix)
+          }`,
+          variables: {
+            benefitMatrix: benefitMatrixDto
+          },
+        }).then((data) => {
+          // Result
+          console.log(data)
+        }).catch((error) => {
+          // Error
+          console.error(error)
+        })
       }
       reader.readAsBinaryString(chosenFile);
     }
-  }
+  },
+  apollo: {
+
+  },
 }
 </script>

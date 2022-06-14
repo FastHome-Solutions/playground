@@ -5,7 +5,7 @@ import { createApolloProvider } from '@vue/apollo-option'
 // HTTP connection to the API
 const httpLink = createHttpLink({
     // You should use an absolute URL here
-    uri: 'http://localhost:3020/graphql',
+    uri: 'http://localhost:8080/graphql',
 })
 
 // Cache implementation
