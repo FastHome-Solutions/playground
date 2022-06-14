@@ -1,5 +1,5 @@
 
-export class CreateBanefitMatrixDto {
+export class CreateBenefitMatrixDto {
     readonly name: string;
 
     readonly age: number;

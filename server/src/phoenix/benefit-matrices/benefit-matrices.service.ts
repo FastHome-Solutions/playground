@@ -2,7 +2,7 @@ import { Model } from 'mongoose';
 import { Injectable, Logger, Query } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
-import { CreateBanefitMatrixDto } from './dto/create-benefit-matrix.dto';
+import { CreateBenefitMatrixDto } from './dto/create-benefit-matrix.dto';
 import { BenefitMatrix, BenefitMatrixDocument } from './schemas/benefit-matrix.schema';
 
 @Injectable()
@@ -13,10 +13,10 @@ export class BanefitMatricesService {
     this.logger = new Logger('BanefitMatricesService', { timestamp: false });
   }
 
-  async create (createBanefitMatrixDto: CreateBanefitMatrixDto): Promise<BenefitMatrix> {
+  async create (createBenefitMatrixDto: CreateBenefitMatrixDto): Promise<BenefitMatrix> {
     this.logger.log('create called');
-    const createdBanefitMatrix = new this.benefitMatrixModel(createBanefitMatrixDto);
-    return await createdBanefitMatrix.save();
+    const createdBenefitMatrix = new this.benefitMatrixModel(createBenefitMatrixDto);
+    return await createdBenefitMatrix.save();
   }
 
   async findOneById(id: string): Promise<BenefitMatrix> {

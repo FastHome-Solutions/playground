@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 
-import { CreateBanefitMatrixDto } from './dto/create-benefit-matrix.dto';
+import { CreateBenefitMatrixDto } from './dto/create-benefit-matrix.dto';
 import { BanefitMatricesService } from './benefit-matrices.service';
 import { BenefitMatrix } from './schemas/benefit-matrix.schema';
 
@@ -9,8 +9,8 @@ export class BanefitMatricesController {
   constructor (private readonly benefitMatricesService: BanefitMatricesService) { }
 
   @Post()
-  async create (@Body() createBanefitMatrixDto: CreateBanefitMatrixDto) {
-    this.benefitMatricesService.create(createBanefitMatrixDto);
+  async create (@Body() createBenefitMatrixDto: CreateBenefitMatrixDto) {
+    this.benefitMatricesService.create(createBenefitMatrixDto);
   }
 
   @Get()
