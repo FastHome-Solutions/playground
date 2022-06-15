@@ -13,12 +13,20 @@
 </template>
 <script lang="ts">
 import { read, utils } from "xlsx"
-import BenefitMatrix, { Header, TariffDetails } from "./BenefitMatrix"
+import { BenefitMatrix, Header, TariffDetails } from "./BenefitMatrix"
 import gql from 'graphql-tag'
 import { CreateBenefitMatrixDto, Period, OfferDto, MetaOfferDto } from "@/dto/create-benefit-matrix.dto"
+import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
 
 
 export default {
+  setup() {
+    const benefitMatrixStore = useBenefitMatrixStore()
+
+    return {
+      benefitMatrixStore
+    }
+  },
   methods: {
     /**
      * Currently, this function isn't actually uploading, just parsing.
@@ -85,7 +93,8 @@ export default {
         }
 
         const benefitMatrix = new BenefitMatrix(header, tariffData)
-        this.$emit('uploaded-file', benefitMatrix)
+        this.benefitMatrixStore.uploadSpreadsheet(benefitMatrix)
+        // this.$emit('uploaded-file', benefitMatrix)
 
         // Transform to format used on the 
         // TODO: parse

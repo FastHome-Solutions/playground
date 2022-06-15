@@ -1,4 +1,4 @@
-export default class BenefitMatrix {
+export class BenefitMatrix {
     header: Header
     tariffDetails: TariffDetails[]
     constructor(
