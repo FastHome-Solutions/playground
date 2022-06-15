@@ -19,4 +19,19 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  server: {
+    port: 8080,
+    proxy: {
+      '^/api': {
+        target: "http://localhost:9080",
+        ws: true,
+        changeOrigin: true,
+      },
+      '^/graphql': {
+        target: "http://localhost:9080",
+        ws: true,
+        changeOrigin: true,
+      },
+    },
+  },
 });
