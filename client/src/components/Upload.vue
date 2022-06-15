@@ -134,7 +134,11 @@ export default {
         // to the server!
         this.$apollo.mutate({
           mutation: gql`mutation CreateBenefitMatrix($benefitMatrix: CreateBenefitMatrixDto!) {
-            createBenefitMatrix(benefitMatrix: $benefitMatrix)
+            createBenefitMatrix(benefitMatrix: $benefitMatrix) {
+              _id
+              brand
+              portfolio
+            }
           }`,
           variables: {
             benefitMatrix: benefitMatrixDto
