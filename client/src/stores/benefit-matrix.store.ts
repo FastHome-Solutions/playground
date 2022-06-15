@@ -4,15 +4,11 @@ import { defineStore } from "pinia";
 export const useBenefitMatrixStore = defineStore({
   id: "BenefitMatrix",
   state: () => ({
-    benefitMatrix: {},
+    benefitMatrix: {} as BenefitMatrix,
   }),
   getters: {
-    tariffs(): TariffDetails {
-      return this.benefitMatrix.tariffDetails
-    },
-    headers(): Header {
-      return this.benefitMatrix.header
-    }
+    tariffs: (state) => state.benefitMatrix.tariffDetails,
+    headers: (state) => state.benefitMatrix.header,
   },
   actions: {
     uploadSpreadsheet(benefitMatrix: BenefitMatrix) {
