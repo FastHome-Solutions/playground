@@ -1,9 +1,9 @@
 <template>
-    <v-card width="100%" height="100%" raised v-if="benefitMatrixStore.header !== null" class="mt-4">
+    <v-card width="100%" height="100%" raised v-if="benefitMatrixStore.tariffs" class="mt-4">
         <v-card-title>Benefit Matrix:</v-card-title>
         <v-card-text>
             <v-table>
-                <!-- <thead>
+                <thead>
                     <tr>
                         <th class="text-center bg-grey">
                             {{ benefitMatrixStore.header.manufacturer }}
@@ -39,9 +39,9 @@
                             {{ benefitMatrixStore.header.offerAllnetPlus }}
                         </th>
                     </tr>
-                </thead> -->
+                </thead>
                 <tbody>
-                    <tr v-for="tariff in benefitMatrixStore.tariffDetails" :key="tariff.id">
+                    <tr v-for="tariff in benefitMatrixStore.tariffs" :key="tariff.id">
                         <td>{{ tariff.manufacturer }}</td>
                         <td>{{ tariff.device }}</td>
                         <td>{{ tariff.parcialPayment }}</td>
