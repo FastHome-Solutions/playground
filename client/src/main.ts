@@ -3,7 +3,7 @@ import App from './App.vue'
 import router from './router'
 import vuetify from './plugins/vuetify'
 import { loadFonts } from './plugins/webfontloader'
-import { apolloProvider } from './services/BenefitMatrixService'
+import { apolloProvider } from './graphql'
 import { createPinia } from 'pinia'
 
 loadFonts()
