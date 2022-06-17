@@ -10,7 +10,53 @@
       </v-file-input>
     </v-card-text>
   </v-card>
+
+  <div class="text-center">
+    <v-dialog v-model="dialog">
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">Upload Metadata</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <v-text-field label="Filename*" required></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field label="Spreadsheet ID*"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" md="6">
+                <v-text-field label="From*" required></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" md="6">
+                <v-text-field label="To*" required></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" md="6">
+                <v-text-field label="Range start*" required></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" md="6">
+                <v-text-field label="Range end*" required></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-select :items="['Online', 'Offline']" label="Portfolios*" required multiple
+                  hint="Multiple selections possible" persistent-hint></v-select>
+              </v-col>
+            </v-row>
+          </v-container>
+          <small>*indicates required field</small>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue-darken-1" text @click="dialog = false">
+            Confirm
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
+
 <script lang="ts">
 import { read, utils } from "xlsx"
 import { BenefitMatrix, Header, TariffDetails } from "./BenefitMatrix"
@@ -27,7 +73,15 @@ export default {
       benefitMatrixStore
     }
   },
+  data() {
+    return {
+      dialog: false,
+    }
+  },
   methods: {
+    showDialog() {
+      this.dialog = true
+    },
     /**
      * Currently, this function isn't actually uploading, just parsing.
      * I assume this will be done on the server eventually.
@@ -98,6 +152,9 @@ export default {
 
         // Transform to format used on the 
         // TODO: parse
+
+        this.showDialog()
+
         const period = new Period(
           new Date('2022-06-09'),
           new Date('2022-06-16'),
