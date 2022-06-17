@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import DashboardView from "../views/DashboardView.vue";
 import UploadView from "../views/UploadView.vue";
 
 const router = createRouter({
@@ -6,7 +7,12 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      name: "home",
+      name: "dashboard",
+      component: DashboardView,
+    },
+    {
+      path: "/upload",
+      name: "uploadView",
       component: UploadView,
     },
     {
