@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import DashboardView from "../views/DashboardView.vue";
+import BenefitMatricesView from "@/views/BenefitMatricesView.vue";
 import UploadView from "../views/UploadView.vue";
 
 const router = createRouter({
@@ -9,6 +10,11 @@ const router = createRouter({
       path: "/",
       name: "dashboard",
       component: DashboardView,
+    },
+    {
+      path: "/benefit-matrices",
+      name: "benefit-matrices",
+      component: BenefitMatricesView,
     },
     {
       path: "/upload",
