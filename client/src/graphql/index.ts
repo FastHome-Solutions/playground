@@ -12,7 +12,7 @@ const httpLink = createHttpLink({
 const cache = new InMemoryCache()
 
 // Create the apollo client
-const apolloClient = new ApolloClient({
+export const apolloClient = new ApolloClient({
     link: httpLink,
     cache,
 })
