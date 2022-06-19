@@ -1,7 +1,6 @@
 
 <template>
-  <v-card>
-    <v-layout>
+  <v-app>
       <v-system-bar color="primary">
         <v-icon icon="mdi-wifi-strength-4" class="ml-2"></v-icon>
 
@@ -42,9 +41,12 @@
       </v-navigation-drawer>
 
 
-      <v-main style="height: 250px">
+    <v-main>
+      <v-container fill-height>
+        <router-view />
+      </v-container>
+    </v-main>
 
-      </v-main>
 
       <v-footer fixed>
         footer
@@ -71,8 +73,7 @@
         </v-btn>
       </v-bottom-navigation>
 
-    </v-layout>
-  </v-card>
+  </v-app>
 </template>
 
 <script lang="ts">
