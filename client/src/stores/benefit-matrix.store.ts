@@ -1,5 +1,5 @@
-import type {BenefitMatrix, Header, TariffDetails} from "@/components/BenefitMatrix";
 import { defineStore } from "pinia";
+import type { BenefitMatrix, Header, TariffDetails } from "@/components/BenefitMatrix";
 
 export const useBenefitMatrixStore = defineStore('BenefitStore', {
   state: () => ({
