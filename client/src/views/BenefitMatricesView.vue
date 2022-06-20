@@ -14,7 +14,9 @@ fetchBenefitMatricesFromServer()
     <p v-if="error">{{ error.message }}</p>
     <ul v-if="benefitMatrices">
       <li v-for="benefitMatrix of benefitMatrices" :key="benefitMatrix._id">
-        {{ benefitMatrix.brand }} {{ benefitMatrix.portfolio }} {{ benefitMatrix.period }}
+        <router-link :to="{ name: 'benefit-matrix', params: { id: benefitMatrix._id } }">
+          {{ benefitMatrix.brand }} {{ benefitMatrix.portfolio }} {{ benefitMatrix.period }}
+        </router-link>
       </li>
     </ul>
   </main>
