@@ -6,7 +6,7 @@ import type { CreateBenefitMatrixDto } from "@/dto/create-benefit-matrix.dto";
 
 export const useBenefitMatrixStore = defineStore('BenefitStore', {
   state: () => ({
-    benefitMatrix: {} as BenefitMatrix,
+    benefitMatrix: {} as CreateBenefitMatrixDto,
     benefitMatrices: [] as CreateBenefitMatrixDto[],
     loading: false,
     error: null,
@@ -33,8 +33,34 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
         this.error = error;
       });
     },
+    fetchBenefitMatrixFromServer(bmId: String) {
+      this.loading = true;
+      apolloClient.query({
+        query: gql`query BenefitMatrix($id:String!) {
+          benefitMatrix(id:$id) {
+            _id
+            period {
+              from
+              to
+            }
+          }
+        }`,
+        variables: {
+          id: bmId
+        },
+      })
+        .then((result) => {
+          console.log(result);
+          this.benefitMatrix = result.data.benefitMatrix;
+          this.loading = false;
+        })
+        .catch((error) => {
+          console.error(error);
+          this.error = error;
+        });
+    },
 
-    uploadSpreadsheet(benefitMatrix: BenefitMatrix) {
+    uploadSpreadsheet(benefitMatrix: CreateBenefitMatrixDto) {
       this.benefitMatrix = benefitMatrix
     },
   },
