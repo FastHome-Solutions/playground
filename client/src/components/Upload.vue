@@ -59,9 +59,8 @@
 
 <script lang="ts">
 import { read, utils } from "xlsx"
-import { BenefitMatrix, Header, TariffDetails } from "./BenefitMatrix"
 import gql from 'graphql-tag'
-import { CreateBenefitMatrixDto, Period, OfferDto, MetaOfferDto } from "@/dto/create-benefit-matrix.dto"
+import { BenefitMatrixDto, Period, OfferDto, MetaOfferDto } from "@/dto/benefit-matrix.dto"
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
 
 export default {
@@ -153,10 +152,9 @@ export default {
               offers
             )
           )
-
         }
 
-        const benefitMatrixDto = new CreateBenefitMatrixDto(
+        const benefitMatrixDto = new BenefitMatrixDto(
           'Blau',
           period,
           'Online',

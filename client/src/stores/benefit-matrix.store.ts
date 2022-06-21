@@ -1,20 +1,16 @@
 import { defineStore } from "pinia";
 import gql from "graphql-tag";
 import { apolloClient } from "@/graphql";
-import type { BenefitMatrix, Header, TariffDetails } from "@/components/BenefitMatrix";
-import type { CreateBenefitMatrixDto } from "@/dto/create-benefit-matrix.dto";
+import type { BenefitMatrixDto } from "@/dto/benefit-matrix.dto";
 
 export const useBenefitMatrixStore = defineStore('BenefitStore', {
   state: () => ({
-    benefitMatrix: {} as CreateBenefitMatrixDto,
-    benefitMatrices: [] as CreateBenefitMatrixDto[],
+    benefitMatrix: {} as BenefitMatrixDto,
+    benefitMatrices: [] as BenefitMatrixDto[],
     loading: false,
     error: null,
   }),
-  getters: {
-    tariffs: (state) => state.benefitMatrix.tariffDetails,
-    header: (state) => state.benefitMatrix.header,
-  },
+  getters: {},
   actions: {
     fetchBenefitMatricesFromServer() {
       this.loading = true;
@@ -60,7 +56,7 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
         });
     },
 
-    uploadSpreadsheet(benefitMatrix: CreateBenefitMatrixDto) {
+    uploadSpreadsheet(benefitMatrix: BenefitMatrixDto) {
       this.benefitMatrix = benefitMatrix
     },
   },

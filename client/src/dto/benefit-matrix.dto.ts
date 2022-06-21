@@ -8,7 +8,7 @@ export class Period {
     }
 }
 
-export class CreateBenefitMatrixDto {
+export class BenefitMatrixDto {
     brand: String
     period: Period
     portfolio: String
