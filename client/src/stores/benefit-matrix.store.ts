@@ -1,7 +1,8 @@
 import { defineStore } from "pinia";
 import gql from "graphql-tag";
 import { apolloClient } from "@/graphql";
-import type { BenefitMatrixDto } from "@/dto/benefit-matrix.dto";
+import { BenefitMatrixDto } from "@/dto/benefit-matrix.dto";
+
 
 export const useBenefitMatrixStore = defineStore('BenefitStore', {
   state: () => ({
@@ -45,19 +46,41 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
           id: bmId
         },
       })
-        .then((result) => {
-          console.log(result);
-          this.benefitMatrix = result.data.benefitMatrix;
-          this.loading = false;
-        })
-        .catch((error) => {
-          console.error(error);
-          this.error = error;
-        });
+      .then((result) => {
+        console.log(result);
+        this.benefitMatrix = result.data.benefitMatrix;
+        this.loading = false;
+      })
+      .catch((error) => {
+        console.error(error);
+        this.error = error;
+      });
     },
+    uploadSpreadsheet(benefitMatrixDto: BenefitMatrixDto) {
+      this.benefitMatrix = benefitMatrixDto
 
-    uploadSpreadsheet(benefitMatrix: BenefitMatrixDto) {
-      this.benefitMatrix = benefitMatrix
+      this.loading = true;
+      apolloClient.mutate({
+        mutation: gql`mutation CreateBenefitMatrix($benefitMatrix: CreateBenefitMatrixDto!) {
+            createBenefitMatrix(benefitMatrix: $benefitMatrix) {
+              _id
+              brand
+              portfolio
+            }
+          }`,
+        variables: {
+          benefitMatrix: benefitMatrixDto
+        },
+      })
+      .then((result) => {
+        console.log(result);
+        this.benefitMatrix = result.data.benefitMatrix;
+        this.loading = false;
+      })
+      .catch((error) => {
+        console.error(error);
+        this.error = error;
+      });
     },
   },
 });

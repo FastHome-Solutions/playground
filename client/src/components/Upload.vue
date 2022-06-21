@@ -59,7 +59,6 @@
 
 <script lang="ts">
 import { read, utils } from "xlsx"
-import gql from 'graphql-tag'
 import { BenefitMatrixDto, Period, OfferDto, MetaOfferDto } from "@/dto/benefit-matrix.dto"
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
 
@@ -162,25 +161,8 @@ export default {
           metaOffers
         )
 
-        // to the server!
-        this.$apollo.mutate({
-          mutation: gql`mutation CreateBenefitMatrix($benefitMatrix: CreateBenefitMatrixDto!) {
-            createBenefitMatrix(benefitMatrix: $benefitMatrix) {
-              _id
-              brand
-              portfolio
-            }
-          }`,
-          variables: {
-            benefitMatrix: benefitMatrixDto
-          },
-        }).then((data) => {
-          // Result
-          console.log(data)
-        }).catch((error) => {
-          // Error
-          console.error(error)
-        })
+        this.benefitMatrixStore.uploadSpreadsheet(benefitMatrixDto)
+
       }
       reader.readAsBinaryString(chosenFile);
     }
