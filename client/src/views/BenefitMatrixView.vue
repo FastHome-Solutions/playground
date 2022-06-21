@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
-import {useRoute} from 'vue-router'
+import { useRoute } from 'vue-router'
 
 const { benefitMatrix, loading, error } = storeToRefs(useBenefitMatrixStore())
 const { fetchBenefitMatrixFromServer } = useBenefitMatrixStore()
@@ -20,7 +20,7 @@ fetchBenefitMatrixFromServer(id)
         <p v-if="loading">Loading posts...</p>
         <p v-if="error">{{ error.message }}</p>
         <p v-if="benefitMatrix">
-            From {{benefitMatrix.period.from}} to {{benefitMatrix.period.to}}
+            From {{ benefitMatrix.period.from }} to {{ benefitMatrix.period.to }}
         </p>
     </main>
 </template>
