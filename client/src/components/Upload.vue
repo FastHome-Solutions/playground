@@ -64,7 +64,6 @@ import gql from 'graphql-tag'
 import { CreateBenefitMatrixDto, Period, OfferDto, MetaOfferDto } from "@/dto/create-benefit-matrix.dto"
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
 
-
 export default {
   setup() {
     const benefitMatrixStore = useBenefitMatrixStore()
@@ -105,87 +104,64 @@ export default {
 
         // Extract rows 
         const rows: [][] = utils.sheet_to_json(workSheet, { header: 1 })
-        // Get Benefit Matrix header. 
-        // TODO: hardcoded to row 75. needs to be dynamic
-        const filteredHeaderRow: [] = rows[75].filter(element => {
-          return element !== null
-        })
-        const header = new Header(
-          filteredHeaderRow[0],
-          filteredHeaderRow[1],
-          filteredHeaderRow[2],
-          filteredHeaderRow[3],
-          filteredHeaderRow[4],
-          filteredHeaderRow[5],
-          filteredHeaderRow[6],
-          filteredHeaderRow[7],
-          filteredHeaderRow[8],
-          filteredHeaderRow[9],
-          filteredHeaderRow[10]
-        )
-        // Get Benefit Matrix data
-        // TODO: replace hardcoded column numbers
-        const tariffData: TariffDetails[] = []
-        for (let i = 76; i < 108; i++) {
-          const row = rows[i]
-          row.splice(0, 3) // filter out the leftmost cell
-          const tariffDetails = new TariffDetails(
-            i,
-            row[0],
-            row[1],
-            row[2],
-            row[3],
-            row[4],
-            row[5],
-            row[6],
-            row[7],
-            row[8],
-            row[9],
-            row[10]
-          )
-          tariffData.push(tariffDetails)
+
+        const headerRowNumber = 76 - 1
+        const lastContentRowNumber = 108 - 1
+        const firstContentColumn = 4 - 1// D
+        const lastContentColumn = 14 - 1// N
+        const firstBundlePriceColumn = 12 - 1 // L
+        const numberOfTariffs = lastContentColumn - firstBundlePriceColumn
+
+        const headerRow: [] = rows[headerRowNumber]
+
+        const tariffNames: String[] = []
+        for (let i = firstBundlePriceColumn; i <= lastContentColumn; i++) {
+          const tariffName = headerRow[i]
+          tariffNames.push(tariffName)
         }
 
-        const benefitMatrix = new BenefitMatrix(header, tariffData)
-        this.benefitMatrixStore.uploadSpreadsheet(benefitMatrix)
-        // this.$emit('uploaded-file', benefitMatrix)
-
-        // Transform to format used on the 
-        // TODO: parse
-
-        this.showDialog()
+        // this.showDialog()
 
         const period = new Period(
           new Date('2022-06-09'),
           new Date('2022-06-16'),
         )
 
-        const offers = [
-          new OfferDto(
-            24,
-            'Allnet XL',
-            -1.5,
-            'vouchername',
-            1,
-            34.99
-          )
-        ]
+        const metaOffers: MetaOfferDto[] = []
 
-        const metaOffers = [
-          new MetaOfferDto (
-            'Apple',
-            'iPhone 16',
-            519,
-            offers
+        for (let i = headerRowNumber + 1; i <= lastContentRowNumber; i++) {
+          const row = rows[i]
+          const offers: OfferDto[] = []
+          for (let i = 0; i <= numberOfTariffs; i++) {
+            offers.push(
+              new OfferDto(
+                24, //contractDuration
+                tariffNames[i], // tarifName
+                row[firstContentColumn  + 5 + i], // discount
+                'vouchername', // voucherName
+                row[firstContentColumn + 2], // upfront
+                row[firstContentColumn + 8 + i] // bundlePrice
+              )
+            )
+          }
+
+          metaOffers.push(
+            new MetaOfferDto(
+              row[firstContentColumn],
+              row[firstContentColumn + 1],
+              row[firstContentColumn + 4],
+              offers
+            )
           )
-        ]
+
+        }
 
         const benefitMatrixDto = new CreateBenefitMatrixDto(
-            'Blau',
-            period,
-            'Online',
-            ['Allnet L', 'Allnet XL'],
-            metaOffers
+          'Blau',
+          period,
+          'Online',
+          tariffNames,
+          metaOffers
         )
 
         // to the server!
