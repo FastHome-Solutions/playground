@@ -63,7 +63,7 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
         this.error = error;
       });
     },
-    uploadSpreadsheet(benefitMatrixDto: BenefitMatrixDto) {
+    uploadSpreadsheetToServer(benefitMatrixDto: BenefitMatrixDto) {
       this.benefitMatrix = benefitMatrixDto
 
       this.loading = true;

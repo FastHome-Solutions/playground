@@ -6,10 +6,11 @@ import "ag-grid-community/dist/styles/ag-grid.css"
 import "ag-grid-community/dist/styles/ag-theme-material.css"
 import moment from 'moment'
 import router from '@/router'
-
+import uploadFile from '@/utils/parsing.utils'
 
 const { benefitMatrices, loading, error } = storeToRefs(useBenefitMatrixStore())
 const { fetchBenefitMatricesFromServer } = useBenefitMatrixStore()
+const { uploadSpreadsheetToServer } = useBenefitMatrixStore()
 
 const columnDefs = [
   {
@@ -111,6 +112,15 @@ function cellClicked(event) {
   }
 }
 
+function onFileUpload(event) {
+  uploadFile(event.target.files[0])
+    .then((result) => {
+      console.log(result)
+      uploadSpreadsheetToServer(result)
+    })
+    .catch((error) => {
+      console.error(error)
+    })
 }
 
 fetchBenefitMatricesFromServer()
