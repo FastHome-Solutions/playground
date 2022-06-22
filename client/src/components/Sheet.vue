@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import type { MetaOfferDto } from '@/dto/benefit-matrix.dto';
+import { storeToRefs } from 'pinia'
+import type { MetaOfferDto } from '@/dto/benefit-matrix.dto'
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
 
 const benefitMatrixStore = useBenefitMatrixStore()
+const { benefitMatrix } = storeToRefs(benefitMatrixStore)
 
 function calculateRate(metaOffer: MetaOfferDto) {
     return (metaOffer.tco - metaOffer.offers[0].upfront) / metaOffer.offers[0].contractDuration
 }
 </script>
-<script lang="ts">
-</script>
+
+
 <template>
-    <v-card width="100%" height="100%" raised class="mt-4" v-if="benefitMatrixStore.benefitMatrix.tariffNames">
+    <v-card width="100%" height="100%" raised class="mt-4" v-if="benefitMatrix">
         <v-card-title>Benefit Matrix:</v-card-title>
         <v-card-text>
             <v-table>
@@ -32,28 +34,28 @@ function calculateRate(metaOffer: MetaOfferDto) {
                         <th class="text-center bg-grey">
                             TCO
                         </th>
-                        <th v-for="discount in benefitMatrixStore.benefitMatrix.tariffNames" :key="discount"
+                        <th v-for="tariffName in benefitMatrix.tariffNames" :key="tariffName"
                             class="text-center bg-purple-darken-2">
-                            {{ discount }}
+                            {{ tariffName }}
                         </th>
-                        <th v-for="bundlePrice in benefitMatrixStore.benefitMatrix.tariffNames" :key="bundlePrice"
-                            class="text-center bg-purple-darken-2">
-                            {{ bundlePrice }}
+                        <th v-for="tariffName in benefitMatrix.tariffNames" :key="tariffName"
+                            class="text-center bg-light-blue">
+                            {{ tariffName }}
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="metaOffer in benefitMatrixStore.benefitMatrix.metaOffers" :key="metaOffer.deviceName">
+                    <tr v-for="metaOffer in benefitMatrix.metaOffers" :key="metaOffer.deviceName">
                         <td>{{ metaOffer.manufacturer }}</td>
                         <td>{{ metaOffer.deviceName }}</td>
                         <td>{{ metaOffer.offers[0].upfront }}</td>
                         <td>{{ calculateRate(metaOffer) }}</td>
                         <td>{{ metaOffer.tco }}</td>
                         <td v-for="offer in metaOffer.offers">
-                            {{ offer.discount}}
+                            {{ offer.discount }}
                         </td>
                         <td v-for="offer in metaOffer.offers">
-                            {{ offer.bundlePrice}}
+                            {{ offer.bundlePrice }}
                         </td>
                     </tr>
                 </tbody>

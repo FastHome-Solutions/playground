@@ -18,8 +18,7 @@ const columnDefs = [
     pinned: 'left',
     colId: 'rowNo',
     cellClass: 'text-center',
-    cellStyle: () => ({ 'font-size': '9px', 'margin-top': '2px' }),
-    // cellRenderer: (params) => params.node.childIndex + 1,
+    cellRenderer: (params) => params.node.childIndex + 1,
     editable: false,
     maxWidth: 40,
     suppressSorting: true,
@@ -57,41 +56,90 @@ const columnDefs = [
     maxWidth: 250,
     type: 'rightAligned',
   },
+  {
+    headerName: 'Edit',
+    headerClass: 'text-left',
+    field: 'edit',
+    cellClass: 'text-left',
+    width: 180,
+    minWidth: 130,
+    maxWidth: 250,
+    type: 'rightAligned',
+    cellRenderer: editCellRenderer,
+    cellRendererParams: {
+      clicked: function (field) {
+        alert(`${field} was clicked`)
+      }
+    },
+    sortable: false,
+    filter: false
+  },
 ]
+
+function editCellRenderer(params) {
+  let eGui = document.createElement('div');
+  eGui.innerHTML = `<button data-action="edit" >Edit</button>`
+  return eGui;
+}
 
 // DefaultColDef sets props common to all Columns
 const defaultColDef = {
+  editable: false,
   sortable: true,
   filter: true,
-  editable: false,
-  enableRangeSelection: true,
-  enableColResize: true,
-  suppressCellSelection: true,
-  suppressMovableColumns: true,
-  maxColWidth: 320,
-  minColWidth: 50,
-  rowHeight: 26,
+  resizable: true,
+  maxWidth: 320,
+  minWidth: 50,
   rowSelection: 'single',
-  sortingOrder: ['desc', 'asc', null],
+  colResizeDefault: 'shift',
 }
 
-function cellClicked(event) { // Example of consuming Grid Event
-  console.log("cell was clicked", event.data._id);
-  router.push({ name: 'benefit-matrix', params: { id: event.data._id } })
+const overlayLoadingTemplate = '<span class=" ag-overlay-loading-center">Loading Promotions</span>'
+const overlayNoRowsTemplate = '<span class="ag-overlay-loading-center">No Data Found</span>'
+
+function cellClicked(event) {
+  if (
+    event.column.colId === 'edit' &&
+    event.event.target.dataset.action
+  ) {
+    let action = event.event.target.dataset.action
+    if (action === 'edit') {
+      console.log('edit')
+    }
+  } else {
+    router.push({ name: 'benefit-matrix', params: { id: event.data._id } })
+  }
+}
+
 }
 
 fetchBenefitMatricesFromServer()
 
-// rowData.value = benefitMatrices
 </script>
 
 <template>
-  <main>
+  <main style="fill-height">
+    <v-card-title>
+      Benefit Matrices
+      <v-spacer></v-spacer>
+      <v-btn rounded="lg" elevation="2" color="primary" absolute bottom right @click="$refs.fileUpload.click()"> Upload
+      </v-btn>
+      <v-file-input id="fileUpload" ref="fileUpload" accept="application/vnd.ms-excel, application/msexcel, application/x-msexcel, application/x-ms-excel, 
+    application/x-excel, application/x-dos_ms_excel, application/xls, application/x-xls,
+    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" label="Click here to select a file to upload"
+        outlined @change="onFileUpload" show-size placeholder="Pick a file to upload" style="display:none">
+      </v-file-input>
+    </v-card-title>
+
     <p v-if="loading">Loading posts...</p>
     <p v-if="error">{{ error.message }}</p>
-    <ag-grid-vue v-if="benefitMatrices" style="width: 100%; height: 200px%" class="ag-theme-material full-height"
-      :columnDefs="columnDefs" :rowData="benefitMatrices" animateRows="true" debug="true" :defaultColDef="defaultColDef"
-      @cell-clicked="cellClicked">
+    <ag-grid-vue v-if="benefitMatrices" style="width: 100%; height: 400px" class="ag-theme-material"
+      :columnDefs="columnDefs" :rowData="benefitMatrices" :animateRows="true" :debug="true"
+      :defaultColDef="defaultColDef" suppressMovableColumns @cell-clicked="cellClicked" :rowHeight="40"
+      :sortingOrder="['desc', 'asc', null]" :overlayLoadingTemplate="overlayLoadingTemplate"
+      :overlayNoRowsTemplate="overlayNoRowsTemplate">
     </ag-grid-vue>
+
+
   </main>
 </template>
