@@ -17,7 +17,15 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
       this.loading = true;
       apolloClient.query({
         query: gql`query {
-          benefitMatrices { _id brand portfolio }
+          benefitMatrices { 
+            _id 
+            brand 
+            portfolio 
+            period {
+              from
+              to
+            }
+          }
         }`,
       })
       .then((result) => {
