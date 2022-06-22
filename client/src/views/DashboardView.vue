@@ -1,26 +1,19 @@
+<script setup lang="ts">
+import router from '@/router'
+
+function list() {
+      router.push({name: 'benefit-matrices'})
+    }
+
+</script>
+
 <template>
   <v-container fill-height>
     <v-btn
-    @on="navigate">
-
+    @click="list">
+      List
     </v-btn>
   </v-container>
 </template>
 
-<script lang="ts">
-// Components
-import Upload from '../components/Upload.vue'
-import Sheet from '../components/Sheet.vue'
-import type BenefitMatrix from '@/components/BenefitMatrix';
 
-export default {
-
-  name: 'DashboardView',
-  methods: {
-    navigate() {
-      // this.$router. 
-    }
-  }
-}
-
-</script>
