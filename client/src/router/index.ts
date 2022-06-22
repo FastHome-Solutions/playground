@@ -1,8 +1,8 @@
-import { createRouter, createWebHistory } from "vue-router";
-import DashboardView from "../views/DashboardView.vue";
-import BenefitMatricesView from "@/views/BenefitMatricesView.vue";
-import BenefitMatrixView from "@/views/BenefitMatrixView.vue"; 
-import UploadView from "../views/UploadView.vue";
+import { createRouter, createWebHistory } from "vue-router"
+import DashboardView from "../views/DashboardView.vue"
+import BenefitMatricesView from "@/views/BenefitMatricesView.vue"
+import BenefitMatrixView from "@/views/BenefitMatrixView.vue"
+import UploadView from "../views/UploadView.vue"
 
 
 const router = createRouter({

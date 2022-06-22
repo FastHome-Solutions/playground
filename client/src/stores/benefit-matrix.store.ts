@@ -1,8 +1,7 @@
-import { defineStore } from "pinia";
-import gql from "graphql-tag";
-import { apolloClient } from "@/graphql";
-import { BenefitMatrixDto } from "@/dto/benefit-matrix.dto";
-
+import { defineStore } from "pinia"
+import gql from "graphql-tag"
+import { apolloClient } from "@/graphql"
+import type { BenefitMatrixDto } from "@/dto/benefit-matrix.dto"
 
 export const useBenefitMatrixStore = defineStore('BenefitStore', {
   state: () => ({
