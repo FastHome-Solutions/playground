@@ -17,12 +17,6 @@ fetchBenefitMatrixFromServer(id)
 
 <template>
     <main>
-        <p>Requested with ID {{ $route.params.id }}</p>
-        <p v-if="loading">Loading posts...</p>
-        <p v-if="error">{{ error.message }}</p>
-        <p v-if="benefitMatrix">
-            From {{ benefitMatrix.period.from }} to {{ benefitMatrix.period.to }}
-        </p>
         <div justify="center">
             <Sheet />
         </div>

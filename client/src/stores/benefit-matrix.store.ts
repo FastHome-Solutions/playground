@@ -42,11 +42,27 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
       this.loading = true;
       apolloClient.query({
         query: gql`query BenefitMatrix($id:String!) {
-          benefitMatrix(id:$id) {
+          benefitMatrix(id:$id){
             _id
+            brand
             period {
               from
               to
+            }
+            portfolio
+            tariffNames
+            metaOffers {
+              manufacturer
+              deviceName
+              tco
+              offers {
+                contractDuration
+                tarifName
+                discount
+                voucherName
+                upfront
+                bundlePrice
+              }
             }
           }
         }`,

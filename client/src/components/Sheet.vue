@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import type { MetaOfferDto } from '@/dto/benefit-matrix.dto'
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
+import moment from 'moment'
 
 const benefitMatrixStore = useBenefitMatrixStore()
 const { benefitMatrix } = storeToRefs(benefitMatrixStore)
@@ -14,7 +15,9 @@ function calculateRate(metaOffer: MetaOfferDto) {
 
 <template>
     <v-card width="100%" height="100%" raised class="mt-4" v-if="benefitMatrix">
-        <v-card-title>Benefit Matrix:</v-card-title>
+        <div class="text-h5">Benefit Matrix</div>
+        <div class="text-h6">{{`${benefitMatrix.brand} ${benefitMatrix.portfolio}`}}</div>
+        <div class="text-h6">{{ `${moment(benefitMatrix.period.from).format("D MMM")} - ${moment(benefitMatrix.period.to).format("D MMM YYYY")}` }}</div>
         <v-card-text>
             <v-table>
                 <thead>
