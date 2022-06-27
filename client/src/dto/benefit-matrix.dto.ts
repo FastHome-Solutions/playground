@@ -9,6 +9,7 @@ export class Period {
 }
 
 export class BenefitMatrixDto {
+    _id: String
     brand: String
     period: Period
     portfolio: String

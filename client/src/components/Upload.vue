@@ -1,17 +1,6 @@
 <template>
-  <v-card width="600" height="160" raised class="mx-auto">
-    <v-card-title>Upload spreadsheet</v-card-title>
-    <br>
-    <v-card-text>
-      <v-file-input accept="application/vnd.ms-excel, application/msexcel, application/x-msexcel, application/x-ms-excel, 
-    application/x-excel, application/x-dos_ms_excel, application/xls, application/x-xls,
-    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" label="Click here to select a file to upload"
-        outlined @change="uploadFile" show-size placeholder="Pick a file to upload">
-      </v-file-input>
-    </v-card-text>
-  </v-card>
-
-  <div class="text-center">
+ 
+  <div class=" text-center">
     <v-dialog v-model="dialog">
       <v-card>
         <v-card-title>
@@ -61,6 +50,7 @@
 import { read, utils } from "xlsx"
 import { BenefitMatrixDto, Period, OfferDto, MetaOfferDto } from "@/dto/benefit-matrix.dto"
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
+
 
 export default {
   setup() {
@@ -135,8 +125,8 @@ export default {
               new OfferDto(
                 24, //contractDuration
                 tariffNames[i], // tarifName
-                row[firstContentColumn  + 5 + i], // discount
-                'vouchername', // voucherName
+                row[firstContentColumn + 5 + i], // discount
+                'vouchername', // voucherName Todo: For blau, currently equals to discount
                 row[firstContentColumn + 2], // upfront
                 row[firstContentColumn + 8 + i] // bundlePrice
               )

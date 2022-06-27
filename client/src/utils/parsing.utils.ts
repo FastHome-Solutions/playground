@@ -1,7 +1,7 @@
 import { read, utils } from "xlsx"
 import { BenefitMatrixDto, Period, OfferDto, MetaOfferDto } from "@/dto/benefit-matrix.dto"
 
-export default function uploadFile(chosenFile: Blob): Promise<BenefitMatrixDto> {
+export function uploadFile(chosenFile: Blob): Promise<[][]> {
     // var chosenFile = event.target.files[0];
     const reader = new FileReader();
 
@@ -20,71 +20,137 @@ export default function uploadFile(chosenFile: Blob): Promise<BenefitMatrixDto> 
                 const workSheet = workBook.Sheets[workSheetName]
 
                 // Extract rows 
-                const rows: [][] = utils.sheet_to_json(workSheet, { header: 1 })
+                const spreadsheet: [][] = utils.sheet_to_json(workSheet, { header: 1 })
 
-                const headerRowNumber = 76 - 1
-                const lastContentRowNumber = 108 - 1
-                const firstContentColumn = 4 - 1// D
-                const lastContentColumn = 14 - 1// N
-                const firstBundlePriceColumn = 12 - 1 // L
-                const numberOfTariffs = lastContentColumn - firstBundlePriceColumn
-
-                const headerRow: [] = rows[headerRowNumber]
-
-                const tariffNames: String[] = []
-                for (let i = firstBundlePriceColumn; i <= lastContentColumn; i++) {
-                    const tariffName = headerRow[i]
-                    tariffNames.push(tariffName)
-                }
-
-                // TODO
-                // this.showDialog()
-
-                const period = new Period(
-                    new Date('2022-06-09'),
-                    new Date('2022-06-16'),
-                )
-
-                const metaOffers: MetaOfferDto[] = []
-
-                for (let i = headerRowNumber + 1; i <= lastContentRowNumber; i++) {
-                    const row = rows[i]
-                    const offers: OfferDto[] = []
-                    for (let i = 0; i <= numberOfTariffs; i++) {
-                        offers.push(
-                            new OfferDto(
-                                24, //contractDuration
-                                tariffNames[i], // tarifName
-                                row[firstContentColumn + 5 + i], // discount
-                                'vouchername', // voucherName Todo: For blau, currently equals to discount
-                                row[firstContentColumn + 2], // upfront
-                                row[firstContentColumn + 8 + i] // bundlePrice
-                            )
-                        )
-                    }
-
-                    metaOffers.push(
-                        new MetaOfferDto(
-                            row[firstContentColumn],
-                            row[firstContentColumn + 1],
-                            row[firstContentColumn + 4],
-                            offers
-                        )
-                    )
-                }
-
-                const benefitMatrixDto = new BenefitMatrixDto(
-                    'Blau',
-                    period,
-                    'Online',
-                    tariffNames,
-                    metaOffers
-                )
-
-                resolve(benefitMatrixDto)
-
+                resolve(spreadsheet)
             }
             reader.readAsBinaryString(chosenFile);
         }
     )
+}
+
+export function parseMetadataSuggestions(filename: String, spreadsheet: [][]): SpreadsheetMetadata {
+    const startYear = (filename.length > 4) ? filename.substring(0, 4) : null
+
+    var from = ''
+    var to = ''
+
+    // From date
+    if (filename.length >= 9) {
+        from = startYear + '-' + filename.substring(4, 6) + '-' + filename.substring(6, 8) + 'T00:00:00'
+    }
+    spreadsheet.forEach(
+        (row) => {
+            row.find((cell) => {
+
+                // To date
+                if (cell && cell.length >= 6) {
+                    var dateFormat = filename.substring(6, 8) + '.' + filename.substring(4, 6) + '.'
+                    if (cell.substring(0, 6) === dateFormat) {
+                        to = startYear + '-' + cell.substring(12, 14) + '-' + cell.substring(9, 11) + 'T23:59:59'
+                    }
+                }
+
+                // TODO Range start
+
+                // TODO Range end
+            }
+            )
+        }
+    )
+    console.log('startDate ' + from)
+    console.log('endDate ' + to)
+
+    const metadata = new SpreadsheetMetadata(new Date(from), new Date(to), 'D76', 'N106', 'Online')
+    return metadata
+
+}
+
+export function parseSpreadsheet(metadata: SpreadsheetMetadata, spreadsheet: [[]]): BenefitMatrixDto {
+    const headerRowNumber = metadata.rangeStart.replace(/[^0-9]/gi, '') - 1
+    const lastContentRowNumber = metadata.rangeEnd.replace(/[^0-9]/gi, '') - 1
+    const firstContentColumn = excelColumnToIndex(metadata.rangeStart) - 1
+    const lastContentColumn = excelColumnToIndex(metadata.rangeEnd) - 1
+    const firstBundlePriceColumn = 12 - 1 // L
+    const numberOfTariffs = lastContentColumn - firstBundlePriceColumn
+
+    const headerRow: [] = spreadsheet[headerRowNumber]
+
+    const tariffNames: String[] = []
+    for (let i = firstBundlePriceColumn; i <= lastContentColumn; i++) {
+        const tariffName = headerRow[i]
+        tariffNames.push(tariffName)
+    }
+
+    const period = new Period(
+        metadata.from,
+        metadata.to,
+    )
+
+    const metaOffers: MetaOfferDto[] = []
+
+    for (let i = headerRowNumber + 1; i <= lastContentRowNumber; i++) {
+        const row = spreadsheet[i]
+        const offers: OfferDto[] = []
+        for (let i = 0; i <= numberOfTariffs; i++) {
+            offers.push(
+                new OfferDto(
+                    24, //contractDuration
+                    tariffNames[i], // tarifName
+                    row[firstContentColumn + 5 + i], // discount
+                    'vouchername', // voucherName Todo: For blau, currently equals to discount
+                    row[firstContentColumn + 2], // upfront
+                    row[firstContentColumn + 8 + i] // bundlePrice
+                )
+            )
+        }
+
+        metaOffers.push(
+            new MetaOfferDto(
+                row[firstContentColumn],
+                row[firstContentColumn + 1],
+                row[firstContentColumn + 4],
+                offers
+            )
+        )
+    }
+
+    const benefitMatrixDto = new BenefitMatrixDto(
+        'Blau',
+        period,
+        metadata.portfolio,
+        tariffNames,
+        metaOffers
+    )
+
+    return benefitMatrixDto
+}
+
+
+function excelColumnToIndex(columnName: String): Number {
+    const sanitizedColumnName = columnName.replace(/[0-9]/g, '')
+    const numberOfLetters = sanitizedColumnName.length
+
+    var columnIndex = 0
+    for (let i = 0; i < numberOfLetters; i++) {
+        columnIndex *= 26
+        const charIndex = sanitizedColumnName.charCodeAt(i) - 65 + 1
+        columnIndex += charIndex
+    }
+    return columnIndex
+}
+
+export class SpreadsheetMetadata {
+    from: Date;
+    to: Date;
+    rangeStart: String;
+    rangeEnd: String;
+    portfolio: String;
+    constructor(from: Date, to: Date, rangeStart: String, rangeEnd: String, portfolio: String) {
+        this.from = from
+        this.to = to
+        this.rangeStart = rangeStart
+        this.rangeEnd = rangeEnd
+        this.portfolio = portfolio
+    }
 }

@@ -35,6 +35,7 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
       .catch((error) => {
         console.error(error);
         this.error = error;
+        this.loading = false;
       });
     },
     fetchBenefitMatrixFromServer(bmId: String) {
@@ -61,18 +62,17 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
       .catch((error) => {
         console.error(error);
         this.error = error;
+        this.loading = false;
       });
     },
-    uploadSpreadsheetToServer(benefitMatrixDto: BenefitMatrixDto) {
+    uploadSpreadsheetToServer(benefitMatrixDto: BenefitMatrixDto): Promise {
       this.benefitMatrix = benefitMatrixDto
 
       this.loading = true;
-      apolloClient.mutate({
+      return apolloClient.mutate({
         mutation: gql`mutation CreateBenefitMatrix($benefitMatrix: CreateBenefitMatrixDto!) {
             createBenefitMatrix(benefitMatrix: $benefitMatrix) {
               _id
-              brand
-              portfolio
             }
           }`,
         variables: {
@@ -81,13 +81,14 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
       })
       .then((result) => {
         console.log(result);
-        this.benefitMatrix = result.data.benefitMatrix;
+        this.benefitMatrix = result.data.createBenefitMatrix;
         this.loading = false;
       })
       .catch((error) => {
         console.error(error);
         this.error = error;
-      });
+        this.loading = false;
+      })
     },
   },
 });

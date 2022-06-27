@@ -1,16 +1,17 @@
-<script setup lang="ts">
+useUploadStore<script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
+import { useUploadStore } from '@/stores/upload.store'
 import { AgGridVue } from "ag-grid-vue3"
 import "ag-grid-community/dist/styles/ag-grid.css"
 import "ag-grid-community/dist/styles/ag-theme-material.css"
 import moment from 'moment'
 import router from '@/router'
-import uploadFile from '@/utils/parsing.utils'
+import MetadataDialog from '@/components/MetadataDialog.vue'
+
 
 const { benefitMatrices, loading, error } = storeToRefs(useBenefitMatrixStore())
 const { fetchBenefitMatricesFromServer } = useBenefitMatrixStore()
-const { uploadSpreadsheetToServer } = useBenefitMatrixStore()
 
 const columnDefs = [
   {
@@ -112,19 +113,23 @@ function cellClicked(event) {
   }
 }
 
+fetchBenefitMatricesFromServer()
+
+// File Upload
+const uploadStore = useUploadStore()
+
 function onFileUpload(event) {
-  uploadFile(event.target.files[0])
-    .then((result) => {
-      console.log(result)
-      uploadSpreadsheetToServer(result)
+  uploadStore.uploadSpreadsheet(event.target.files[0])
+    .then(() => {
+      uploadStore.parseMetadata(uploadStore.fileName, uploadStore.spreadsheet)
+      uploadStore.showMetadataDialog()
+
+      // uploadSpreadsheetToServer(result)
     })
     .catch((error) => {
       console.error(error)
     })
 }
-
-fetchBenefitMatricesFromServer()
-
 </script>
 
 <template>
@@ -140,6 +145,8 @@ fetchBenefitMatricesFromServer()
         outlined @change="onFileUpload" show-size placeholder="Pick a file to upload" style="display:none">
       </v-file-input>
     </v-card-title>
+
+    <MetadataDialog />
 
     <p v-if="loading">Loading posts...</p>
     <p v-if="error">{{ error.message }}</p>
