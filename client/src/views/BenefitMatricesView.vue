@@ -1,4 +1,4 @@
-useUploadStore<script setup lang="ts">
+<script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
 import { useUploadStore } from '@/stores/upload.store'
