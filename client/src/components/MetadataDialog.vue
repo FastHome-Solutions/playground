@@ -42,8 +42,7 @@ async function parseSpreadsheetWithInput() {
     const metadata = new SpreadsheetMetadata(new Date(), new Date(), rangeStart.value, rangeEnd.value, portfolio.value)
     const parsedBenefitMatrix = parseSpreadsheet(metadata, uploadStore.spreadsheet)
     await uploadSpreadsheetToServer(parsedBenefitMatrix)
-    console.log(benefitMatrix)
-    router.push({ name: 'benefit-matrix', params: { id: benefitMatrix._id } })
+    router.push({ name: 'benefit-matrix', params: { id: benefitMatrix.value._id } })
 }
 
 
