@@ -17,7 +17,9 @@ function calculateRate(metaOffer: MetaOfferDto) {
     <v-card width="100%" height="100%" raised class="mt-4" v-if="benefitMatrix">
         <div class="text-h5">Benefit Matrix</div>
         <div class="text-h6">{{`${benefitMatrix.brand} ${benefitMatrix.portfolio}`}}</div>
-        <div class="text-h6">{{ `${moment(benefitMatrix.period.from).format("D MMM")} - ${moment(benefitMatrix.period.to).format("D MMM YYYY")}` }}</div>
+        <div class="text-h6" v-if="benefitMatrix.period">{{ `${moment(benefitMatrix.period.from).format("D MMM")} - ${moment(benefitMatrix.period.to).format("D MMM YYYY")}` }}</div>
+
+        
         <v-card-text>
             <v-table>
                 <thead>
