@@ -10,8 +10,6 @@ import router from '@/router'
 import MetadataDialog from '@/components/MetadataDialog.vue'
 import { ref } from 'vue'
 
-
-
 const { benefitMatrices, loading, error } = storeToRefs(useBenefitMatrixStore())
 const { fetchBenefitMatricesFromServer } = useBenefitMatrixStore()
 

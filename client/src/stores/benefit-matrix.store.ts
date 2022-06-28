@@ -38,9 +38,9 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
         this.loading = false;
       });
     },
-    fetchBenefitMatrixFromServer(bmId: String) {
+    fetchBenefitMatrixFromServer(bmId: String): Promise {
       this.loading = true;
-      apolloClient.query({
+      return apolloClient.query({
         query: gql`query BenefitMatrix($id:String!) {
           benefitMatrix(id:$id){
             _id
