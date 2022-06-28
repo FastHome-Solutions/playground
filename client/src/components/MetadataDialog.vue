@@ -8,20 +8,30 @@ import { ref } from 'vue'
 import router from '@/router'
 
 const uploadStore = useUploadStore()
-const { metadataDialog } = storeToRefs(uploadStore)
-const { metadataSuggestions } = storeToRefs(uploadStore)
 
 const { uploadSpreadsheetToServer } = useBenefitMatrixStore()
 const { benefitMatrix } = storeToRefs(useBenefitMatrixStore())
 
-
 const dateFormat = 'DD.MM.YYYY HH:mm'
 
-var from = ref(moment(metadataSuggestions.from).format(dateFormat))
-var to = ref(moment(metadataSuggestions.to).format(dateFormat))
-var rangeStart = ref(metadataSuggestions.rangeStart)
-var rangeEnd = ref(metadataSuggestions.rangeEnd)
+uploadStore.parseMetadata(uploadStore.fileName, uploadStore.spreadsheet)
+
+var from = ref('')
+var to = ref('')
+var rangeStart = ref('')
+var rangeEnd = ref('')
 var portfolio = ref('Online')
+
+var show = ref(false)
+function showDialog() {
+    from.value = moment(uploadStore.metadataSuggestions.from).format(dateFormat)
+    to.value = moment(uploadStore.metadataSuggestions.to).format(dateFormat)
+    rangeStart.value = uploadStore.metadataSuggestions.rangeStart
+    rangeEnd.value = uploadStore.metadataSuggestions.rangeEnd
+    show.value = true
+}
+defineExpose({showDialog})
+
 
 const portfolioItems = ['Online', 'Offline']
 
@@ -51,7 +61,7 @@ async function parseSpreadsheetWithInput() {
 <template>
 
     <div class=" text-center">
-        <v-dialog v-model="metadataDialog">
+        <v-dialog v-model="show">
             <v-card>
                 <v-card-title>
                     <span class="text-h5">Upload Metadata</span>

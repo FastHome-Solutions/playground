@@ -4,7 +4,6 @@ import { uploadFile, SpreadsheetMetadata, parseMetadataSuggestions } from '@/uti
 
 export const useUploadStore = defineStore('UploadStore', {
     state: () => ({
-        metadataDialog: false,
         spreadsheet: [[]],
         fileName: String,
         metadataSuggestions: SpreadsheetMetadata,
@@ -13,12 +12,6 @@ export const useUploadStore = defineStore('UploadStore', {
         error: null,
     }),
     actions: {
-        showMetadataDialog() {
-            this.metadataDialog = true
-        },
-        hideMetadataDialog() {
-            this.metadataDialog = false
-        },
         uploadSpreadsheet(chosenFile: Blob): Promise {
             this.loading = true;
 

@@ -8,6 +8,8 @@ import "ag-grid-community/dist/styles/ag-theme-material.css"
 import moment from 'moment'
 import router from '@/router'
 import MetadataDialog from '@/components/MetadataDialog.vue'
+import { ref } from 'vue'
+
 
 
 const { benefitMatrices, loading, error } = storeToRefs(useBenefitMatrixStore())
@@ -117,18 +119,11 @@ fetchBenefitMatricesFromServer()
 
 // File Upload
 const uploadStore = useUploadStore()
-
-function onFileUpload(event) {
-  uploadStore.uploadSpreadsheet(event.target.files[0])
-    .then(() => {
-      uploadStore.parseMetadata(uploadStore.fileName, uploadStore.spreadsheet)
-      uploadStore.showMetadataDialog()
-
-      // uploadSpreadsheetToServer(result)
-    })
-    .catch((error) => {
-      console.error(error)
-    })
+const dialog = ref(null)
+async function onFileUpload(event) {
+  await uploadStore.uploadSpreadsheet(event.target.files[0])
+  uploadStore.parseMetadata(uploadStore.fileName, uploadStore.spreadsheet)
+  dialog.value.showDialog()
 }
 </script>
 
@@ -146,7 +141,7 @@ function onFileUpload(event) {
       </v-file-input>
     </v-card-title>
 
-    <MetadataDialog />
+    <MetadataDialog ref="dialog" />
 
     <p v-if="loading">Loading posts...</p>
     <p v-if="error">{{ error.message }}</p>
