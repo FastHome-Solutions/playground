@@ -4,7 +4,6 @@ import { BanefitMatricesService } from "./benefit-matrices.service";
 import { BenefitMatrix } from "./schemas/benefit-matrix.schema";
 import { BenefitMatricesArgs } from "./dto/benefit-matrices.args";
 import { CreateBenefitMatrixDto } from "./dto/create-benefit-matrix.dto";
-import { GetBenefitMatrixDto } from "./dto/get-benefit-matrix.dto";
 
 @Resolver(of => BenefitMatrix)
 export class BenefitMatrixResolver {
@@ -20,16 +19,31 @@ export class BenefitMatrixResolver {
     return this.benefitMatricesService.findAll({});
   }
 
-  @Query(returns => GetBenefitMatrixDto)
-  async benefitMatrix(@Args('id') id: string): Promise<GetBenefitMatrixDto> {
+  @Query(returns => BenefitMatrix)
+  async benefitMatrix(@Args('id') id: string): Promise<BenefitMatrix> {
     const benefitMatrix = await this.benefitMatricesService.findOneById(id);
     if (!benefitMatrix) {
       throw new NotFoundException(id);
     }
-    const previous = await this.benefitMatricesService.findPreviousByDate(benefitMatrix.period.from);
-    const next = await this.benefitMatricesService.findNextByDate(benefitMatrix.period.from);
-   
-    return new GetBenefitMatrixDto(benefitMatrix, previous, next);
+    return benefitMatrix;
+  }
+
+  @Query(returns => BenefitMatrix, { nullable: true })
+  async prevBenefitMatrix(@Args('id') id: string): Promise<BenefitMatrix> {
+    const benefitMatrix = await this.benefitMatricesService.findOneById(id);
+    if (!benefitMatrix) {
+      throw new NotFoundException(id);
+    }
+    return await this.benefitMatricesService.findPreviousByDate(benefitMatrix.period.from);
+  }
+
+  @Query(returns => BenefitMatrix, { nullable: true })
+  async nextBenefitMatrix(@Args('id') id: string): Promise<BenefitMatrix> {
+    const benefitMatrix = await this.benefitMatricesService.findOneById(id);
+    if (!benefitMatrix) {
+      throw new NotFoundException(id);
+    }
+    return await this.benefitMatricesService.findNextByDate(benefitMatrix.period.from);
   }
 
   @Mutation(returns => BenefitMatrix)

@@ -4,7 +4,6 @@ import { InjectModel } from '@nestjs/mongoose';
 
 import { CreateBenefitMatrixDto } from './dto/create-benefit-matrix.dto';
 import { BenefitMatrix, BenefitMatrixDocument } from './schemas/benefit-matrix.schema';
-import { GetBenefitMatrixDto } from './dto/get-benefit-matrix.dto';
 
 @Injectable()
 export class BanefitMatricesService {
