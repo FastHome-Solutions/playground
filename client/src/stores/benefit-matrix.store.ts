@@ -6,6 +6,8 @@ import type { BenefitMatrixDto } from "@/dto/benefit-matrix.dto"
 export const useBenefitMatrixStore = defineStore('BenefitStore', {
   state: () => ({
     benefitMatrix: {} as BenefitMatrixDto,
+    previousBenefitMatrix: {} as BenefitMatrixDto,
+    nextBenefitMatrix: {} as BenefitMatrixDto,
     benefitMatrices: [] as BenefitMatrixDto[],
     loading: false,
     error: null,
@@ -65,20 +67,37 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
               }
             }
           }
-        }`,
+          prevBenefitMatrix(id: $id) {
+            _id
+            period{
+              from
+              to
+            }
+          }
+          nextBenefitMatrix(id: $id) {
+            _id
+            period{
+              from
+              to
+            }
+          }
+        }    
+        `,
         variables: {
           id: bmId
         },
       })
       .then((result) => {
         console.log(result);
-        this.benefitMatrix = result.data.benefitMatrix;
-        this.loading = false;
+        this.benefitMatrix = result.data.benefitMatrix
+        this.previousBenefitMatrix = result.data.prevBenefitMatrix
+        this.nextBenefitMatrix = result.data.nextBenefitMatrix
+        this.loading = false
       })
       .catch((error) => {
-        console.error(error);
-        this.error = error;
-        this.loading = false;
+        console.error(error)
+        this.error = error
+        this.loading = false
       });
     },
     uploadSpreadsheetToServer(benefitMatrixDto: BenefitMatrixDto): Promise {
