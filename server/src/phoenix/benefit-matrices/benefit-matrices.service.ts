@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 
 import { CreateBenefitMatrixDto } from './dto/create-benefit-matrix.dto';
 import { BenefitMatrix, BenefitMatrixDocument } from './schemas/benefit-matrix.schema';
+import { GetBenefitMatrixDto } from './dto/get-benefit-matrix.dto';
 
 @Injectable()
 export class BanefitMatricesService {
@@ -22,6 +23,16 @@ export class BanefitMatricesService {
   async findOneById(id: string): Promise<BenefitMatrix> {
     this.logger.log(`findOneById called with ${id}`);
     return await this.benefitMatrixModel.findOne({ _id: id }).exec();
+  }
+
+  async findPreviousByDate(currentDate: Date): Promise<BenefitMatrix> {
+    this.logger.log(`findPreviousByDate called with ${currentDate}`);
+    return await this.benefitMatrixModel.findOne({ "period.from": { $lt: currentDate } }).sort({ "period.from": -1 }).exec();
+  }
+
+  async findNextByDate(currentDate: Date): Promise<BenefitMatrix> {
+    this.logger.log(`findNextByDate called with ${currentDate}`);
+    return await this.benefitMatrixModel.findOne({ "period.from": { $gt: currentDate } }).sort({ "period.from": 1 }).exec();
   }
 
   async findAll (@Query() query): Promise<BenefitMatrix[]> {

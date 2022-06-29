@@ -4,6 +4,7 @@ import { BanefitMatricesService } from "./benefit-matrices.service";
 import { BenefitMatrix } from "./schemas/benefit-matrix.schema";
 import { BenefitMatricesArgs } from "./dto/benefit-matrices.args";
 import { CreateBenefitMatrixDto } from "./dto/create-benefit-matrix.dto";
+import { GetBenefitMatrixDto } from "./dto/get-benefit-matrix.dto";
 
 @Resolver(of => BenefitMatrix)
 export class BenefitMatrixResolver {
@@ -19,13 +20,16 @@ export class BenefitMatrixResolver {
     return this.benefitMatricesService.findAll({});
   }
 
-  @Query(returns => BenefitMatrix)
-  async benefitMatrix(@Args('id') id: string): Promise<BenefitMatrix> {
+  @Query(returns => GetBenefitMatrixDto)
+  async benefitMatrix(@Args('id') id: string): Promise<GetBenefitMatrixDto> {
     const benefitMatrix = await this.benefitMatricesService.findOneById(id);
     if (!benefitMatrix) {
       throw new NotFoundException(id);
     }
-    return benefitMatrix;
+    const previous = await this.benefitMatricesService.findPreviousByDate(benefitMatrix.period.from);
+    const next = await this.benefitMatricesService.findNextByDate(benefitMatrix.period.from);
+   
+    return new GetBenefitMatrixDto(benefitMatrix, previous, next);
   }
 
   @Mutation(returns => BenefitMatrix)
