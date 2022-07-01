@@ -17,7 +17,7 @@ const dateFormat = 'DD.MM.YYYY HH:mm'
 uploadStore.parseMetadata(uploadStore.fileName, uploadStore.spreadsheet)
 
 var from = ref('')
-var to = ref('')
+var till = ref('')
 var rangeStart = ref('')
 var rangeEnd = ref('')
 var portfolio = ref('Online')
@@ -25,7 +25,7 @@ var portfolio = ref('Online')
 var show = ref(false)
 function showDialog() {
     from.value = moment(uploadStore.metadataSuggestions.from).format(dateFormat)
-    to.value = moment(uploadStore.metadataSuggestions.to).format(dateFormat)
+    till.value = moment(uploadStore.metadataSuggestions.to).format(dateFormat)
     rangeStart.value = uploadStore.metadataSuggestions.rangeStart
     rangeEnd.value = uploadStore.metadataSuggestions.rangeEnd
     show.value = true
@@ -49,7 +49,7 @@ const portfolioRules = [
 ]
 
 async function parseSpreadsheetWithInput() {
-    const metadata = new SpreadsheetMetadata(new Date(), new Date(), rangeStart.value, rangeEnd.value, portfolio.value)
+    const metadata = new SpreadsheetMetadata(moment(from.value, dateFormat).toDate(), moment(till.value, dateFormat).toDate(), rangeStart.value, rangeEnd.value, portfolio.value)
     const parsedBenefitMatrix = parseSpreadsheet(metadata, uploadStore.spreadsheet)
     await uploadSpreadsheetToServer(parsedBenefitMatrix)
     router.push({ name: 'benefit-matrix', params: { id: benefitMatrix.value._id } })
@@ -74,7 +74,7 @@ async function parseSpreadsheetWithInput() {
                                 </v-text-field>
                             </v-col>
                             <v-col cols="12" sm="6" md="6">
-                                <v-text-field label="To*" required v-model="to" :rules="dateRules"></v-text-field>
+                                <v-text-field label="To*" required v-model="till" :rules="dateRules"></v-text-field>
                             </v-col>
                             <v-col cols="12" sm="6" md="6">
                                 <v-text-field label="Range start*" required v-model="rangeStart" :rules="rangeRules">
