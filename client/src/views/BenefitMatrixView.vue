@@ -20,9 +20,11 @@ const { fetchBenefitMatrixFromServer } = useBenefitMatrixStore()
 const route = useRoute()
 
 watch(
-    () => useRoute().params.id,
-    (newId, previousId) => {
-        updateData(newId)
+    () => route.params.id,
+    (newId, oldId) => {
+        if(newId) {
+            updateData(newId)
+        }
     }
 )
 

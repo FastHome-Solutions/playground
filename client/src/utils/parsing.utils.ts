@@ -33,7 +33,7 @@ export function parseMetadataSuggestions(filename: String, spreadsheet: [][]): S
     const startYear = (filename.length > 4) ? filename.substring(0, 4) : null
 
     var from = ''
-    var to = ''
+    var till = ''
 
     // From date
     if (filename.length >= 9) {
@@ -47,7 +47,7 @@ export function parseMetadataSuggestions(filename: String, spreadsheet: [][]): S
                 if (cell && cell.length >= 6) {
                     var dateFormat = filename.substring(6, 8) + '.' + filename.substring(4, 6) + '.'
                     if (cell.substring(0, 6) === dateFormat) {
-                        to = startYear + '-' + cell.substring(12, 14) + '-' + cell.substring(9, 11) + 'T23:59:59'
+                        till = startYear + '-' + cell.substring(12, 14) + '-' + cell.substring(9, 11) + 'T23:59:59'
                     }
                 }
 
@@ -59,9 +59,9 @@ export function parseMetadataSuggestions(filename: String, spreadsheet: [][]): S
         }
     )
     console.log('startDate ' + from)
-    console.log('endDate ' + to)
+    console.log('endDate ' + till)
 
-    const metadata = new SpreadsheetMetadata(new Date(from), new Date(to), 'D76', 'N106', 'Online')
+    const metadata = new SpreadsheetMetadata(new Date(from), new Date(till), 'D76', 'N106', 'Online')
     return metadata
 
 }
