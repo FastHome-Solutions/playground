@@ -24,7 +24,7 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
             portfolio 
             period {
               from
-              to
+              till
             }
           }
         }`,
@@ -49,21 +49,23 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
             brand
             period {
               from
-              to
+              till
             }
             portfolio
             tariffNames
-            metaOffers {
+            deviceConfigurations {
               manufacturer
               deviceName
               tco
-              offers {
-                contractDuration
-                tarifName
-                discount
-                voucherName
+              contractConfigurations {
+                duration
                 upfront
-                bundlePrice
+                tariffConfigurations {
+                  name
+                  discount
+                  voucherName
+                  bundlePrice
+                }
               }
             }
           }
@@ -71,17 +73,17 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
             _id
             period{
               from
-              to
+              till
             }
           }
           nextBenefitMatrix(id: $id) {
             _id
             period{
               from
-              to
+              till
             }
           }
-        }    
+        }
         `,
         variables: {
           id: bmId

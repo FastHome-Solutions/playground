@@ -1,10 +1,10 @@
 export class Period {
     from: Date
-    to: Date
+    till: Date
 
-    constructor(from: Date, to: Date) {
+    constructor(from: Date, till: Date) {
         this.from = from
-        this.to = to
+        this.till = till
     }
 }
 
@@ -14,63 +14,73 @@ export class BenefitMatrixDto {
     period: Period
     portfolio: String
     tariffNames: String[]
-    metaOffers: MetaOfferDto[]
+    deviceConfigurations: DeviceConfigurationDto[]
 
     constructor(
         brand: String,
         period: Period,
         portfolio: String,
         tariffNames: String[],
-        metaOffers: MetaOfferDto[],
+        deviceConfigurations: DeviceConfigurationDto[],
     ) {
         this.brand = brand
         this.period = period
         this.portfolio = portfolio
         this.tariffNames = tariffNames
-        this.metaOffers = metaOffers
+        this.deviceConfigurations = deviceConfigurations
     }
 }
 
-export class MetaOfferDto {
+export class DeviceConfigurationDto {
     manufacturer: String
     deviceName: String
     tco: Number
-    offers: OfferDto[]
+    contractConfigurations: ContractConfigurationDto[]
 
     constructor(
         manufacturer: String,
         deviceName: String,
         tco: Number,
-        offers: OfferDto[],
+        contractConfigurations: ContractConfigurationDto[],
     ) {
         this.manufacturer = manufacturer
         this.deviceName = deviceName
         this.tco = tco
-        this.offers = offers
+        this.contractConfigurations = contractConfigurations
     }
 }
 
-export class OfferDto {
-    contractDuration: Number
-    tarifName: String
+export class ContractConfigurationDto {
+    duration: Number
+    upfront: Number
+    tariffConfigurations: TariffConfigurationDto[]
+
+    constructor(
+        duration: Number,
+        upfront: Number,
+        tariffConfigurations: TariffConfigurationDto[]
+    ) {
+        this.duration = duration
+        this.upfront = upfront
+        this.tariffConfigurations = tariffConfigurations
+    }
+}
+
+export class TariffConfigurationDto {
+    name: String
     discount: Number
     voucherName: String
-    upfront: Number
     bundlePrice: Number
 
     constructor(
-        contractDuration: Number,
-        tarifName: String,
+        name: String,
         discount: Number,
         voucherName: String,
-        upfront: Number,
         bundlePrice: Number,
     ) {
-        this.contractDuration = contractDuration
-        this.tarifName = tarifName
+        this.name = name
         this.discount = discount
         this.voucherName = voucherName
-        this.upfront = upfront
         this.bundlePrice = bundlePrice
     }
 }

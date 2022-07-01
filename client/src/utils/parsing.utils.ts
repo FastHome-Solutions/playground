@@ -1,5 +1,5 @@
 import { read, utils } from "xlsx"
-import { BenefitMatrixDto, Period, OfferDto, MetaOfferDto } from "@/dto/benefit-matrix.dto"
+import { BenefitMatrixDto, Period, ContractConfigurationDto, TariffConfigurationDto, DeviceConfigurationDto } from "@/dto/benefit-matrix.dto"
 
 export function uploadFile(chosenFile: Blob): Promise<[][]> {
     // var chosenFile = event.target.files[0];
@@ -84,43 +84,51 @@ export function parseSpreadsheet(metadata: SpreadsheetMetadata, spreadsheet: [[]
 
     const period = new Period(
         metadata.from,
-        metadata.to,
+        metadata.till,
     )
 
-    const metaOffers: MetaOfferDto[] = []
+    const deviceConfigurations: DeviceConfigurationDto[] = []
 
     for (let i = headerRowNumber + 1; i <= lastContentRowNumber; i++) {
         const row = spreadsheet[i]
-        const offers: OfferDto[] = []
+        const contractConfigurations: ContractConfigurationDto[] = []
+        const tariffConfigurations: TariffConfigurationDto[] = []
         for (let i = 0; i <= numberOfTariffs; i++) {
-            offers.push(
-                new OfferDto(
-                    24, //contractDuration
+            tariffConfigurations.push(
+                new TariffConfigurationDto(
                     tariffNames[i], // tarifName
                     row[firstContentColumn + 5 + i], // discount
                     'vouchername', // voucherName Todo: For blau, currently equals to discount
-                    row[firstContentColumn + 2], // upfront
-                    row[firstContentColumn + 8 + i] // bundlePrice
+                    row[firstContentColumn + 8 + i], // bundlePrice
                 )
-            )
+            )    
         }
 
-        metaOffers.push(
-            new MetaOfferDto(
-                row[firstContentColumn],
-                row[firstContentColumn + 1],
-                row[firstContentColumn + 4],
-                offers
+        //TODO: Handle multiple contract configurations
+        contractConfigurations.push(
+            new ContractConfigurationDto(
+                24, //contractDuration
+                row[firstContentColumn + 2], // upfront
+                tariffConfigurations,
+            )
+        )
+
+        deviceConfigurations.push(
+            new DeviceConfigurationDto(
+                row[firstContentColumn], // manufacturer
+                row[firstContentColumn + 1], // device name
+                row[firstContentColumn + 4], // TCO
+                contractConfigurations,
             )
         )
     }
 
     const benefitMatrixDto = new BenefitMatrixDto(
-        'Blau',
+        'Blau', // TODO
         period,
         metadata.portfolio,
         tariffNames,
-        metaOffers
+        deviceConfigurations
     )
 
     return benefitMatrixDto
@@ -142,13 +150,13 @@ function excelColumnToIndex(columnName: String): Number {
 
 export class SpreadsheetMetadata {
     from: Date;
-    to: Date;
+    till: Date;
     rangeStart: String;
     rangeEnd: String;
     portfolio: String;
     constructor(from: Date, to: Date, rangeStart: String, rangeEnd: String, portfolio: String) {
         this.from = from
-        this.to = to
+        this.till = to
         this.rangeStart = rangeStart
         this.rangeEnd = rangeEnd
         this.portfolio = portfolio

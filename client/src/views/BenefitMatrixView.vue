@@ -70,7 +70,7 @@ function updateData(id: String) {
                     headerClass: 'text-left',
                     field: 'offers',
                     valueGetter: params => {
-                        return params.data.offers[0].upfront
+                        return params.data.contractConfigurations[0].upfront
                     },
                     cellClass: 'text-left',
                     width: 180,
@@ -83,8 +83,8 @@ function updateData(id: String) {
                     headerClass: 'text-left',
                     field: 'offers',
                     valueGetter: params => {
-                        const metaOffer = params.data
-                        return (metaOffer.tco - metaOffer.offers[0].upfront) / metaOffer.offers[0].contractDuration
+                        const deviceConfiguration = params.data
+                        return (deviceConfiguration.tco - deviceConfiguration.contractConfigurations[0].upfront) / deviceConfiguration.contractConfigurations[0].duration
                     },
                     cellClass: 'text-left',
                     width: 180,
@@ -109,7 +109,7 @@ function updateData(id: String) {
                     headerClass: 'text-left bg-purple-darken-2',
                     field: 'offers',
                     valueGetter: params => {
-                        return params.data.offers[i].discount
+                        return params.data.contractConfigurations[0].tariffConfigurations[i].discount
                     },
                     cellClass: 'text-left',
                     width: 180,
@@ -124,7 +124,7 @@ function updateData(id: String) {
                     headerClass: 'text-left bg-light-blue',
                     field: 'offers',
                     valueGetter: params => {
-                        return params.data.offers[i].bundlePrice
+                        return params.data.contractConfigurations[0].tariffConfigurations[i].bundlePrice
                     },
                     cellClass: 'text-left',
                     width: 180,
@@ -155,26 +155,27 @@ function openNext() {
                 <div class="text-h5">Benefit Matrix</div>
                 <div class="text-h6">{{ `${benefitMatrix.brand} ${benefitMatrix.portfolio}` }}</div>
                 <div class="text-h6" v-if="benefitMatrix.period">
-                {{ `${moment(benefitMatrix.period.from).format("D MMM")} - ${ moment(benefitMatrix.period.to).format("D MMM YYYY")}`}}
+                    {{ `${moment(benefitMatrix.period.from).format("D MMM")} - ${
+                    moment(benefitMatrix.period.till).format("D MMM YYYY")}`}}
                 </div>
                 <v-card-text>
-                    <ag-grid-vue v-if="benefitMatrix.metaOffers" style="width: 100%; height: 400px"
-                        class="ag-theme-material" :columnDefs="columnDefs" :rowData="benefitMatrix.metaOffers"
+                    <ag-grid-vue v-if="benefitMatrix.deviceConfigurations" style="width: 100%; height: 400px"
+                        class="ag-theme-material" :columnDefs="columnDefs" :rowData="benefitMatrix.deviceConfigurations"
                         :animateRows="true" :debug="true" :defaultColDef="defaultColDef" suppressMovableColumns
-                        @cell-clicked="cellClicked" :rowHeight="40" :sortingOrder="['desc', 'asc', null]"
-                        :overlayLoadingTemplate="overlayLoadingTemplate" :overlayNoRowsTemplate="overlayNoRowsTemplate">
+                        @cell-clicked="cellClicked" :rowHeight="40" :sortingOrder="['desc', 'asc', null]">
                     </ag-grid-vue>
                 </v-card-text>
             </v-card>
         </div>
-        <v-btn class="text-h6" v-if="previousBenefitMatrix" @click="openPrevious">{{ `<-
-                ${moment(previousBenefitMatrix.period.from).format("D MMM")} - ${
-                moment(previousBenefitMatrix.period.to).format("D MMM YYYY")}`}}</v-btn>
-                <v-btn class="text-h6" v-if="benefitMatrix" disabled>
-                {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} - ${moment(benefitMatrix.period.to).format("D MMM YYYY")}`}}</v-btn>
-                <v-btn class="text-h6" v-if="nextBenefitMatrix" @click="openNext">{{
-                    `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
-                    ${moment(nextBenefitMatrix.period.to).format("D MMM YYYY")} ->`}}</v-btn>
+        <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{ `<-
+        ${moment(previousBenefitMatrix.period.from).format("D MMM")} - ${
+        moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}`}}</v-btn>
+                <v-btn class="text-h6" v-if="benefitMatrix && benefitMatrix.period" disabled>
+                    {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} -
+                    ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`}}</v-btn>
+                <v-btn class="text-h6" v-if="nextBenefitMatrix && nextBenefitMatrix.period" @click="openNext">{{
+                `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
+                ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`}}</v-btn>
 
     </main>
 </template>

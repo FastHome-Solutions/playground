@@ -21,6 +21,7 @@
     "ag-grid-vue3": "^27.3.0",
     "graphql": "^16.5.0",
     "graphql-tag": "^2.12.6",
+    "luxon": "^2.4.0",
     "moment": "^2.29.3",
     "pinia": "^2.0.14",
     "roboto-fontface": "*",
