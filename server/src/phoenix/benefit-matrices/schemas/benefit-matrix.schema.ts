@@ -12,7 +12,7 @@ class Period {
 
   @Field()
   @Prop()
-  to: Date
+  till: Date
 }
 
 @ObjectType()
@@ -38,13 +38,13 @@ export class BenefitMatrix {
   @Prop()
   tariffNames: String[]
 
-  @Field(() => [MetaOffer])
+  @Field(() => [DeviceConfiguration])
   @Prop()
-  metaOffers: MetaOffer[]
+  deviceConfigurations: DeviceConfiguration[]
 }
 
 @ObjectType()
-class MetaOffer {
+class DeviceConfiguration {
   @Field()
   @Prop()
   manufacturer: String
@@ -57,20 +57,31 @@ class MetaOffer {
   @Prop()
   tco: Number
 
-  @Field(() => [Offer])
+  @Field(() => [ContractConfiguration])
   @Prop()
-  offers: Offer[]
+  contractConfigurations: ContractConfiguration[]
 }
 
 @ObjectType()
-class Offer {
+class ContractConfiguration {
   @Field()
   @Prop()
-  contractDuration: Number
-  
+  duration: Number
+
   @Field()
   @Prop()
-  tarifName: String
+  upfront: Number
+
+  @Field(() => [TariffConfiguration])
+  @Prop()
+  tariffConfigurations: TariffConfiguration[]
+}
+
+@ObjectType()
+class TariffConfiguration {
+  @Field()
+  @Prop()
+  name: String
   
   @Field()
   @Prop()
@@ -79,10 +90,6 @@ class Offer {
   @Field()
   @Prop()
   voucherName: String
-  
-  @Field()
-  @Prop()
-  upfront: Number
   
   @Field()
   @Prop()

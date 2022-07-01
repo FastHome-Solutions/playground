@@ -8,9 +8,8 @@ class ValidityPeriod {
     from: Date
 
     @Field(() => Date)
-    to: Date
+    till: Date
 }
-
 
 @InputType()
 export class CreateBenefitMatrixDto {
@@ -27,14 +26,13 @@ export class CreateBenefitMatrixDto {
     @Field(() => [String])
     tariffNames: String[]
 
-    @Field(() => [MetaOfferDto])
-    metaOffers: MetaOfferDto[]
-
+    @Field(() => [DeviceConfigurationDto])
+    deviceConfigurations: DeviceConfigurationDto[]
 }
 
 
 @InputType()
-class MetaOfferDto {
+class DeviceConfigurationDto {
 
     @Field()
     manufacturer: String
@@ -45,20 +43,26 @@ class MetaOfferDto {
     @Field()
     tco: Number
 
-    @Field(() => [OfferDto])
-    offers: OfferDto[]
-
+    @Field(() => [ContractConfigurationDto])
+    contractConfigurations: ContractConfigurationDto[]
 }
 
+@InputType()
+class ContractConfigurationDto {
+    @Field()
+    duration: Number
+
+    @Field()
+    upfront: Number
+
+    @Field(() => [TariffConfigurationDto])
+    tariffConfigurations: TariffConfigurationDto[]
+}
 
 @InputType()
-class OfferDto {
-
+class TariffConfigurationDto {
     @Field()
-    contractDuration: Number
-
-    @Field()
-    tarifName: String
+    name: String
 
     @Field()
     discount: Number
@@ -67,9 +71,5 @@ class OfferDto {
     voucherName: String
 
     @Field()
-    upfront: Number
-
-    @Field()
     bundlePrice: Number
-
 }
