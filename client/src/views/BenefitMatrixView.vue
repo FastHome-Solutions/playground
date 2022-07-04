@@ -8,7 +8,8 @@ import 'ag-grid-community/dist/styles/ag-theme-material.css'
 import { useRoute } from 'vue-router'
 import { ref, watch } from 'vue'
 import router from '@/router'
-import EditDialog from '@/components/EditDialog.vue'
+import DeviceConfigurationDialog from '@/components/DeviceConfigurationDialog.vue'
+import type { DeviceConfigurationDto } from '@/dto/benefit-matrix.dto'
 
 
 const benefitMatrixStore = useBenefitMatrixStore()
@@ -17,6 +18,8 @@ const { previousBenefitMatrix } = storeToRefs(benefitMatrixStore)
 const { nextBenefitMatrix } = storeToRefs(benefitMatrixStore)
 
 const { fetchBenefitMatrixFromServer } = useBenefitMatrixStore()
+const { updateBenefitMatrixOnServer } = useBenefitMatrixStore()
+
 
 const route = useRoute()
 
@@ -29,7 +32,7 @@ watch(
     }
 )
 
-const id = useRoute().params.id
+const id = route.params.id
 const columnDefs = ref(null)
 const nextDate = ref('')
 
@@ -182,6 +185,12 @@ function openNext() {
     router.push({ name: 'benefit-matrix', params: { id: nextBenefitMatrix.value._id } })
 }
 
+function update(deviceConfiguration: DeviceConfigurationDto) {
+
+    console.log(`device config on event ${deviceConfiguration}`)
+    // updateBenefitMatrixOnServer(route.params.id, benefitMatrix)
+}
+
 </script>
 
 <template>
@@ -204,7 +213,7 @@ function openNext() {
             </v-card>
         </div>
 
-        <EditDialog ref="dialog"/>
+        <DeviceConfigurationDialog ref="dialog" @save="update" />
 
         <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{ `<-
         ${moment(previousBenefitMatrix.period.from).format("D MMM")} - ${
