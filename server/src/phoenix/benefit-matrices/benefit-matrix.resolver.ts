@@ -50,4 +50,9 @@ export class BenefitMatrixResolver {
   async createBenefitMatrix(@Args('benefitMatrix') benefitMatrix: CreateBenefitMatrixDto) {
       return await this.benefitMatricesService.create(benefitMatrix);
   }
+
+  @Mutation(returns => BenefitMatrix)
+  async updateBenefitMatrix(@Args('id') id: String, @Args('benefitMatrix') benefitMatrix: CreateBenefitMatrixDto) {
+    return await this.benefitMatricesService.update(id, benefitMatrix);
+  }
 } 
