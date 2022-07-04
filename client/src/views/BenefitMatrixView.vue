@@ -135,10 +135,42 @@ function updateData(id: String) {
                     type: 'rightAligned'
                 })
             })
+            columnDefs.value.push({
+                headerName: 'Edit',
+                headerClass: 'text-left',
+                field: 'edit',
+                cellClass: 'text-left',
+                width: 180,
+                minWidth: 130,
+                maxWidth: 250,
+                type: 'rightAligned',
+                cellRenderer: editCellRenderer,
+                sortable: false,
+                    filter: false
+            })
+
+            function editCellRenderer(params) {
+                let eGui = document.createElement('div');
+                eGui.innerHTML = `<button data-action="edit" >Edit</button>`
+                return eGui;
+            }
         })
 }
 
 updateData(id)
+
+function cellClicked(event) {
+    if (
+        event.column.colId === 'edit' &&
+        event.event.target.dataset.action
+    ) {
+        let action = event.event.target.dataset.action
+        if (action === 'edit') {
+            console.log('edit')
+            //event.data
+        }
+    }
+}
 
 function openPrevious() {
     router.push({ path: '/benefit-matrix/' + previousBenefitMatrix.value._id })
