@@ -127,5 +127,51 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
         this.loading = false;
       })
     },
+        updateBenefitMatrixOnServer(bmId: String, benefitMatrixDto: BenefitMatrixDto): Promise {
+      this.loading = true;
+      return apolloClient.mutate({
+        mutation: gql`mutation UpdateBenefitMatrix($id: String! $benefitMatrix: CreateBenefitMatrixDto!) {
+          updateBenefitMatrix(id: $id, benefitMatrix: $benefitMatrix) {
+            _id
+            brand
+            period {
+              from
+              till
+            }
+            portfolio
+            tariffNames
+            deviceConfigurations {
+              manufacturer
+              deviceName
+              tco
+              contractConfigurations {
+                duration
+                upfront
+                tariffConfigurations {
+                  name
+                  discount
+                  voucherName
+                  bundlePrice
+                }
+              }
+            }
+          }
+        }`,
+        variables: {
+          id: bmId,
+          benefitMatrix: benefitMatrixDto
+        },
+      })
+        .then((result) => {
+          console.log(result);
+          this.benefitMatrix = result.data.createBenefitMatrix;
+          this.loading = false;
+        })
+        .catch((error) => {
+          console.error(error);
+          this.error = error;
+          this.loading = false;
+        })
+    },
   },
 });
