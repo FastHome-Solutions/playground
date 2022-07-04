@@ -2,12 +2,13 @@
 import { storeToRefs } from 'pinia'
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
 import moment from 'moment'
-import { AgGridVue } from "ag-grid-vue3"
-import "ag-grid-community/dist/styles/ag-grid.css"
-import "ag-grid-community/dist/styles/ag-theme-material.css"
+import { AgGridVue } from 'ag-grid-vue3'
+import 'ag-grid-community/dist/styles/ag-grid.css'
+import 'ag-grid-community/dist/styles/ag-theme-material.css'
 import { useRoute } from 'vue-router'
 import { ref, watch } from 'vue'
 import router from '@/router'
+import EditDialog from '@/components/EditDialog.vue'
 
 
 const benefitMatrixStore = useBenefitMatrixStore()
@@ -159,6 +160,7 @@ function updateData(id: String) {
 
 updateData(id)
 
+const dialog = ref(null)
 function cellClicked(event) {
     if (
         event.column.colId === 'edit' &&
@@ -167,7 +169,7 @@ function cellClicked(event) {
         let action = event.event.target.dataset.action
         if (action === 'edit') {
             console.log('edit')
-            //event.data
+            dialog.value.showDialog(event.data)
         }
     }
 }
@@ -201,6 +203,9 @@ function openNext() {
                 </v-card-text>
             </v-card>
         </div>
+
+        <EditDialog ref="dialog"/>
+
         <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{ `<-
         ${moment(previousBenefitMatrix.period.from).format("D MMM")} - ${
         moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}`}}</v-btn>
