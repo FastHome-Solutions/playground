@@ -43,7 +43,7 @@ export function parseMetadataSuggestions(filename: String, spreadsheet: [][]): S
         (row) => {
             row.find((cell) => {
 
-                // To date
+                // Till date
                 if (cell && cell.length >= 6) {
                     var dateFormat = filename.substring(6, 8) + '.' + filename.substring(4, 6) + '.'
                     if (cell.substring(0, 6) === dateFormat) {
@@ -154,9 +154,9 @@ export class SpreadsheetMetadata {
     rangeStart: String;
     rangeEnd: String;
     portfolio: String;
-    constructor(from: Date, to: Date, rangeStart: String, rangeEnd: String, portfolio: String) {
+    constructor(from: Date, till: Date, rangeStart: String, rangeEnd: String, portfolio: String) {
         this.from = from
-        this.till = to
+        this.till = till
         this.rangeStart = rangeStart
         this.rangeEnd = rangeEnd
         this.portfolio = portfolio

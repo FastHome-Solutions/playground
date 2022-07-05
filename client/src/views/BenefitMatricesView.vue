@@ -30,7 +30,7 @@ const columnDefs = [
     headerClass: 'text-left',
     field: 'period',
     cellClass: 'text-left',
-    valueFormatter: ({ value }) => `${moment(value.from).format("D MMM")} - ${moment(value.to).format("D MMM YYYY")}`,
+    valueFormatter: ({ value }) => `${moment(value.from).format("D MMM")} - ${moment(value.till).format("D MMM YYYY")}`,
     sort: 'desc',
     sortingOrder: ['desc', 'asc'],
     comparator: (period1, period2) => moment(period1.from).isSame(period2.from) ? 0 : moment(period1.from).isAfter(period2.from) ? 1 : -1,

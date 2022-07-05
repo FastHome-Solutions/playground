@@ -10,6 +10,7 @@ import { ref, watch } from 'vue'
 import router from '@/router'
 import DeviceConfigurationDialog from '@/components/DeviceConfigurationDialog.vue'
 import { BenefitMatrixDto, ContractConfigurationDto, DeviceConfigurationDto, Period, TariffConfigurationDto, } from '@/dto/benefit-matrix.dto'
+import { BenefitMatrixBundlePrice, BenefitMatrixDiscount, BenefitMatrixRowData, benefitMatrixToRowData } from '@/components/benefit-matrix.businessmodel'
 
 
 const benefitMatrixStore = useBenefitMatrixStore()
@@ -34,10 +35,14 @@ watch(
 
 const grid = ref(null)
 const columnDefs = ref(null)
+const rowData = ref(null)
 
 function updateData(id: String) {
     fetchBenefitMatrixFromServer(id)
         .then(() => {
+            const rows = benefitMatrixToRowData(benefitMatrix.value)
+            rowData.value = rows
+
             columnDefs.value = [
                 {
                     headerName: '',
@@ -71,14 +76,21 @@ function updateData(id: String) {
                     type: 'rightAligned',
                 },
                 {
+                    headerName: 'Vertragslaufzeit',
+                    headerClass: 'text-left',
+                    field: 'contractDuration',
+                    cellClass: 'text-left',
+                    width: 130,
+                    minWidth: 130,
+                    maxWidth: 250,
+                    type: 'rightAligned',
+                },
+                {
                     headerName: 'Anzahlung',
                     headerClass: 'text-left',
-                    field: 'offers',
-                    valueGetter: params => {
-                        return params.data.contractConfigurations[0].upfront
-                    },
+                    field: 'upfront',
                     cellClass: 'text-left',
-                    width: 180,
+                    width: 130,
                     minWidth: 130,
                     maxWidth: 250,
                     type: 'rightAligned',
@@ -86,13 +98,9 @@ function updateData(id: String) {
                 {
                     headerName: 'Rate',
                     headerClass: 'text-left',
-                    field: 'offers',
-                    valueGetter: params => {
-                        const deviceConfiguration = params.data
-                        return (deviceConfiguration.tco - deviceConfiguration.contractConfigurations[0].upfront) / deviceConfiguration.contractConfigurations[0].duration
-                    },
+                    field: 'rate',
                     cellClass: 'text-left',
-                    width: 180,
+                    width: 130,
                     minWidth: 130,
                     maxWidth: 250,
                     type: 'rightAligned',
@@ -102,37 +110,37 @@ function updateData(id: String) {
                     headerClass: 'text-left',
                     field: 'tco',
                     cellClass: 'text-left',
-                    width: 180,
+                    width: 130,
                     minWidth: 130,
                     maxWidth: 250,
                     type: 'rightAligned',
                 },
             ]
-            benefitMatrixStore.benefitMatrix.tariffNames.forEach((tariffName, i) => {
+            benefitMatrix.value.tariffNames.forEach((tariffName: string, i: number) => {
                 columnDefs.value.push({
                     headerName: tariffName,
                     headerClass: 'text-left bg-purple-darken-2',
-                    field: 'offers',
+                    field: 'discounts',
                     valueGetter: params => {
-                        return params.data.contractConfigurations[0].tariffConfigurations[i].discount
+                        return params.data.discounts[i].discount
                     },
                     cellClass: 'text-left',
-                    width: 180,
+                    width: 130,
                     minWidth: 130,
                     maxWidth: 250,
                     type: 'rightAligned'
                 })
             })
-            benefitMatrixStore.benefitMatrix.tariffNames.forEach((tariffName, i) => {
+            benefitMatrix.value.tariffNames.forEach((tariffName: string, i: number) => {
                 columnDefs.value.push({
                     headerName: tariffName,
                     headerClass: 'text-left bg-light-blue',
-                    field: 'offers',
+                    field: 'bundlePrices',
                     valueGetter: params => {
-                        return params.data.contractConfigurations[0].tariffConfigurations[i].bundlePrice
+                        return params.data.bundlePrices[i].bundlePrice
                     },
                     cellClass: 'text-left',
-                    width: 180,
+                    width: 130,
                     minWidth: 130,
                     maxWidth: 250,
                     type: 'rightAligned'
@@ -157,8 +165,6 @@ function updateData(id: String) {
                 eGui.innerHTML = `<button data-action="edit" >Edit</button>`
                 return eGui;
             }
-
-            
         })
 }
 
@@ -274,7 +280,8 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
 
 <template>
     <main>
-        <v-progress-linear color="deep-purple accent-4" indeterminate rounded height="6" v-if="loading"></v-progress-linear>
+        <v-progress-linear color="deep-purple accent-4" indeterminate rounded height="6" v-if="loading">
+        </v-progress-linear>
 
         <div justify="center">
             <v-card width="100%" height="100%" raised class="mt-4" v-if="benefitMatrix">
@@ -286,10 +293,10 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
                     }}
                 </div>
                 <v-card-text>
-                    <ag-grid-vue v-if="benefitMatrix.deviceConfigurations" ref="grid" style="width: 100%; height: 400px"
-                        class="ag-theme-material" :columnDefs="columnDefs" :rowData="benefitMatrix.deviceConfigurations"
-                        :animateRows="true" :debug="true" :defaultColDef="defaultColDef" suppressMovableColumns
-                        @cell-clicked="cellClicked" :rowHeight="40" :sortingOrder="['desc', 'asc', null]"
+                    <ag-grid-vue v-if="rowData" ref="grid" style="width: 100%; height: 400px" class="ag-theme-material"
+                        :columnDefs="columnDefs" :rowData="rowData" :animateRows="true" :debug="true"
+                        :defaultColDef="defaultColDef" suppressMovableColumns @cell-clicked="cellClicked"
+                        :rowHeight="40" :sortingOrder="['desc', 'asc', null]"
                         :overlayLoadingTemplate="overlayLoadingTemplate" :overlayNoRowsTemplate="overlayNoRowsTemplate">
                     </ag-grid-vue>
                 </v-card-text>
@@ -299,16 +306,16 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
         <DeviceConfigurationDialog ref="dialog" @save="update" />
 
         <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{ `<-
-                ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
-                ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}` }}</v-btn>
+        ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
+        ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}` }}</v-btn>
                 <v-btn class="text-h6" v-if="benefitMatrix && benefitMatrix.period" disabled>
                     {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} -
                     ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                     }}</v-btn>
                 <v-btn class="text-h6" v-if="nextBenefitMatrix && nextBenefitMatrix.period" @click="openNext">{{
-                    `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
-                    ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
-                    }}</v-btn>
+                `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
+                ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
+                }}</v-btn>
 
                 <v-snackbar v-model="error">
                     {{ error.message }}
