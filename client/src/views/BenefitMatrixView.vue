@@ -157,7 +157,20 @@ function updateData(id: String) {
                 eGui.innerHTML = `<button data-action="edit" >Edit</button>`
                 return eGui;
             }
+
+            
         })
+}
+
+const defaultColDef = {
+    editable: false,
+    sortable: true,
+    filter: true,
+    resizable: true,
+    maxWidth: 320,
+    minWidth: 50,
+    rowSelection: 'single',
+    colResizeDefault: 'shift',
 }
 
 updateData(route.params.id)
@@ -251,6 +264,9 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
         clonedDeviceConfigurations,
     )
 
+    const overlayLoadingTemplate = '<span class=" ag-overlay-loading-center">Loading Promotions</span>'
+    const overlayNoRowsTemplate = '<span class="ag-overlay-loading-center">No Data Found</span>'
+
     updateBenefitMatrixOnServer(route.params.id, clonedBenefitMatrix)
 }
 
@@ -264,14 +280,15 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
                 <div class="text-h6">{{ `${benefitMatrix.brand} ${benefitMatrix.portfolio}` }}</div>
                 <div class="text-h6" v-if="benefitMatrix.period">
                     {{ `${moment(benefitMatrix.period.from).format("D MMM")} -
-                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                    ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                     }}
                 </div>
                 <v-card-text>
                     <ag-grid-vue v-if="benefitMatrix.deviceConfigurations" ref="grid" style="width: 100%; height: 400px"
                         class="ag-theme-material" :columnDefs="columnDefs" :rowData="benefitMatrix.deviceConfigurations"
                         :animateRows="true" :debug="true" :defaultColDef="defaultColDef" suppressMovableColumns
-                        @cell-clicked="cellClicked" :rowHeight="40" :sortingOrder="['desc', 'asc', null]">
+                        @cell-clicked="cellClicked" :rowHeight="40" :sortingOrder="['desc', 'asc', null]"
+                        :overlayLoadingTemplate="overlayLoadingTemplate" :overlayNoRowsTemplate="overlayNoRowsTemplate">
                     </ag-grid-vue>
                 </v-card-text>
             </v-card>
@@ -280,17 +297,16 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
         <DeviceConfigurationDialog ref="dialog" @save="update" />
 
         <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{ `<-
-                        ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
-                        ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}`
-        }}</v-btn>
+                ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
+                ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}` }}</v-btn>
                 <v-btn class="text-h6" v-if="benefitMatrix && benefitMatrix.period" disabled>
                     {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} -
-                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                    ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                     }}</v-btn>
                 <v-btn class="text-h6" v-if="nextBenefitMatrix && nextBenefitMatrix.period" @click="openNext">{{
-                        `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
-                                    ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
-                }}</v-btn>
+                    `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
+                    ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
+                    }}</v-btn>
 
     </main>
 </template>
