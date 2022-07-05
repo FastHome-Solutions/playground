@@ -42,7 +42,7 @@ export class BanefitMatricesService {
   }
 
   async update(id: String, createBenefitMatrixDto: CreateBenefitMatrixDto): Promise<BenefitMatrix> {
-    this.logger.log(`update called with ${JSON.stringify(createBenefitMatrixDto)}`);
+    this.logger.log(`update called with id ${id} and ${JSON.stringify(createBenefitMatrixDto)}`);
     return await this.benefitMatrixModel.findOneAndUpdate({ _id: id }, createBenefitMatrixDto, { useFindAndModify: false, new: true });
   }
 }

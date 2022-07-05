@@ -9,7 +9,7 @@ import { useRoute } from 'vue-router'
 import { ref, watch } from 'vue'
 import router from '@/router'
 import DeviceConfigurationDialog from '@/components/DeviceConfigurationDialog.vue'
-import type { DeviceConfigurationDto } from '@/dto/benefit-matrix.dto'
+import { BenefitMatrixDto, ContractConfigurationDto, DeviceConfigurationDto, Period, TariffConfigurationDto, } from '@/dto/benefit-matrix.dto'
 
 
 const benefitMatrixStore = useBenefitMatrixStore()
@@ -26,15 +26,14 @@ const route = useRoute()
 watch(
     () => route.params.id,
     (newId, oldId) => {
-        if(newId) {
+        if (newId) {
             updateData(newId)
         }
     }
 )
 
-const id = route.params.id
+const grid = ref(null)
 const columnDefs = ref(null)
-const nextDate = ref('')
 
 function updateData(id: String) {
     fetchBenefitMatrixFromServer(id)
@@ -150,7 +149,7 @@ function updateData(id: String) {
                 type: 'rightAligned',
                 cellRenderer: editCellRenderer,
                 sortable: false,
-                    filter: false
+                filter: false
             })
 
             function editCellRenderer(params) {
@@ -161,9 +160,10 @@ function updateData(id: String) {
         })
 }
 
-updateData(id)
+updateData(route.params.id)
 
-const dialog = ref(null)
+const dialog = ref(DeviceConfigurationDialog)
+let outdatedDeviceConfiguration: DeviceConfigurationDto
 function cellClicked(event) {
     if (
         event.column.colId === 'edit' &&
@@ -172,7 +172,8 @@ function cellClicked(event) {
         let action = event.event.target.dataset.action
         if (action === 'edit') {
             console.log('edit')
-            dialog.value.showDialog(event.data)
+            outdatedDeviceConfiguration = event.data
+            dialog.value.showDialog(outdatedDeviceConfiguration)
         }
     }
 }
@@ -185,10 +186,72 @@ function openNext() {
     router.push({ name: 'benefit-matrix', params: { id: nextBenefitMatrix.value._id } })
 }
 
-function update(deviceConfiguration: DeviceConfigurationDto) {
+function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
 
-    console.log(`device config on event ${deviceConfiguration}`)
-    // updateBenefitMatrixOnServer(route.params.id, benefitMatrix)
+    // TODO: Is there a nicer way to do this?
+    const clonedPeriod = new Period(
+        benefitMatrix.value.period.from,
+        benefitMatrix.value.period.till,
+    )
+    const clonedDeviceConfigurations: DeviceConfigurationDto[] = []
+
+    benefitMatrix.value.deviceConfigurations.forEach(
+        deviceConfiguration => {
+            if (deviceConfiguration.manufacturer == outdatedDeviceConfiguration.manufacturer && deviceConfiguration.deviceName == outdatedDeviceConfiguration.deviceName) {
+                clonedDeviceConfigurations.push(updatedDeviceConfiguration)
+                console.log(`changing ${JSON.stringify(outdatedDeviceConfiguration)} to ${JSON.stringify(updatedDeviceConfiguration)}`)
+            } else {
+                const clonedContractConfigurations: ContractConfigurationDto[] = []
+
+                deviceConfiguration.contractConfigurations.forEach(
+                    contractConfiguration => {
+
+                        const clonedTariffConfigurations: TariffConfigurationDto[] = []
+
+                        contractConfiguration.tariffConfigurations.forEach(
+                            tariffConfiguration => {
+                                clonedTariffConfigurations.push(
+                                    new TariffConfigurationDto(
+                                        tariffConfiguration.name,
+                                        tariffConfiguration.discount,
+                                        tariffConfiguration.voucherName,
+                                        tariffConfiguration.bundlePrice
+                                    )
+                                )
+                            }
+                        )
+
+                        clonedContractConfigurations.push(
+                            new ContractConfigurationDto(
+                                contractConfiguration.duration,
+                                contractConfiguration.upfront,
+                                clonedTariffConfigurations,
+                            )
+                        )
+                    }
+                )
+
+                clonedDeviceConfigurations.push(
+                    new DeviceConfigurationDto(
+                        deviceConfiguration.manufacturer,
+                        deviceConfiguration.deviceName,
+                        deviceConfiguration.tco,
+                        clonedContractConfigurations,
+                    )
+                )
+            }
+        }
+    )
+
+    const clonedBenefitMatrix = new BenefitMatrixDto(
+        benefitMatrix.value.brand,
+        clonedPeriod,
+        benefitMatrix.value.portfolio,
+        benefitMatrix.value.tariffNames,
+        clonedDeviceConfigurations,
+    )
+
+    updateBenefitMatrixOnServer(route.params.id, clonedBenefitMatrix)
 }
 
 </script>
@@ -200,11 +263,12 @@ function update(deviceConfiguration: DeviceConfigurationDto) {
                 <div class="text-h5">Benefit Matrix</div>
                 <div class="text-h6">{{ `${benefitMatrix.brand} ${benefitMatrix.portfolio}` }}</div>
                 <div class="text-h6" v-if="benefitMatrix.period">
-                    {{ `${moment(benefitMatrix.period.from).format("D MMM")} - ${
-                    moment(benefitMatrix.period.till).format("D MMM YYYY")}`}}
+                    {{ `${moment(benefitMatrix.period.from).format("D MMM")} -
+                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                    }}
                 </div>
                 <v-card-text>
-                    <ag-grid-vue v-if="benefitMatrix.deviceConfigurations" style="width: 100%; height: 400px"
+                    <ag-grid-vue v-if="benefitMatrix.deviceConfigurations" ref="grid" style="width: 100%; height: 400px"
                         class="ag-theme-material" :columnDefs="columnDefs" :rowData="benefitMatrix.deviceConfigurations"
                         :animateRows="true" :debug="true" :defaultColDef="defaultColDef" suppressMovableColumns
                         @cell-clicked="cellClicked" :rowHeight="40" :sortingOrder="['desc', 'asc', null]">
@@ -216,14 +280,17 @@ function update(deviceConfiguration: DeviceConfigurationDto) {
         <DeviceConfigurationDialog ref="dialog" @save="update" />
 
         <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{ `<-
-        ${moment(previousBenefitMatrix.period.from).format("D MMM")} - ${
-        moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}`}}</v-btn>
+                        ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
+                        ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}`
+        }}</v-btn>
                 <v-btn class="text-h6" v-if="benefitMatrix && benefitMatrix.period" disabled>
                     {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} -
-                    ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`}}</v-btn>
+                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                    }}</v-btn>
                 <v-btn class="text-h6" v-if="nextBenefitMatrix && nextBenefitMatrix.period" @click="openNext">{{
-                `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
-                ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`}}</v-btn>
+                        `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
+                                    ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
+                }}</v-btn>
 
     </main>
 </template>
