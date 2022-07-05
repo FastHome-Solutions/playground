@@ -13,7 +13,7 @@ import { BenefitMatrixDto, ContractConfigurationDto, DeviceConfigurationDto, Per
 
 
 const benefitMatrixStore = useBenefitMatrixStore()
-const { benefitMatrix } = storeToRefs(benefitMatrixStore)
+const { benefitMatrix, loading, error } = storeToRefs(benefitMatrixStore)
 const { previousBenefitMatrix } = storeToRefs(benefitMatrixStore)
 const { nextBenefitMatrix } = storeToRefs(benefitMatrixStore)
 
@@ -274,6 +274,8 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
 
 <template>
     <main>
+        <v-progress-linear color="deep-purple accent-4" indeterminate rounded height="6" v-if="loading"></v-progress-linear>
+
         <div justify="center">
             <v-card width="100%" height="100%" raised class="mt-4" v-if="benefitMatrix">
                 <div class="text-h5">Benefit Matrix</div>
@@ -307,6 +309,16 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
                     `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
                     ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
                     }}</v-btn>
+
+                <v-snackbar v-model="error">
+                    {{ error.message }}
+
+                    <template v-slot:action="{ attrs }">
+                        <v-btn color="pink" text v-bind="attrs" @click="snackbar = false">
+                            Close
+                        </v-btn>
+                    </template>
+                </v-snackbar>
 
     </main>
 </template>
