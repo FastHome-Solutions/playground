@@ -23,6 +23,9 @@ function save() {
     show.value = false
 }
 
+function cancel() {
+    show.value = false
+}
 </script>
 
 <template>
@@ -70,8 +73,11 @@ function save() {
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
+                    <v-btn color=" blue-darken-1" text @click="cancel">
+                        Abbrechen
+                    </v-btn>
                     <v-btn color=" blue-darken-1" text @click="save">
-                        Confirm
+                        Speichern
                     </v-btn>
                 </v-card-actions>
             </v-card>
