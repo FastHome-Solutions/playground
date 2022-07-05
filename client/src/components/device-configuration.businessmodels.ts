@@ -1,9 +1,10 @@
 import { TariffConfigurationDto, DeviceConfigurationDto, ContractConfigurationDto } from '@/dto/benefit-matrix.dto'
+import type { BenefitMatrixBundlePrice, BenefitMatrixDiscount, BenefitMatrixRowData } from './benefit-matrix.businessmodel'
 
 /**
- * Only the data needed to represent one row of a BenefitMatrixView's table
- * */ 
-export class RowData { 
+ * Only the data needed to represent one row of a BenefitMatrixView's table in the DeviceConfigurationDialog
+ * */
+export class RowData {
     manufacturer: String
     deviceName: String
     upfrontInternal: number
@@ -11,18 +12,20 @@ export class RowData {
     contractDuration: number
     rate: number
     tariffs: TariffData[] = []
-    constructor(deviceConfiguration: DeviceConfigurationDto) {
-        this.manufacturer = deviceConfiguration.manufacturer
-        this.deviceName = deviceConfiguration.deviceName
-        this.upfrontInternal = deviceConfiguration.contractConfigurations[0].upfront
-        this.tcoInternal =  deviceConfiguration.tco
-        this.contractDuration = deviceConfiguration.contractConfigurations[0].duration        
+  
+    constructor(rowData: BenefitMatrixRowData) {
+        this.manufacturer = rowData.manufacturer
+        this.deviceName = rowData.deviceName
+        this.upfrontInternal = rowData.upfront
+        this.tcoInternal = rowData.tco
+        this.contractDuration = rowData.contractDuration
         this.rate = (this.tco - this.upfrontInternal) / this.contractDuration
 
-        deviceConfiguration.contractConfigurations[0].tariffConfigurations.forEach(
-            tariffConfiguration => {
+        rowData.discounts.forEach(
+            (discount, i) => {
+                const bundlePrice = rowData.bundlePrices[i]
                 this.tariffs.push(
-                    new TariffData(this.rate, tariffConfiguration)
+                    new TariffData(this.rate, discount, bundlePrice)
                 )
             }
         )
@@ -65,15 +68,17 @@ export class RowData {
             this.manufacturer,
             this.deviceName,
             this.tco,
-            new ContractConfigurationDto(
-                this.contractDuration,
-                this.upfront,
-                tariffConfigurations
-            )
+            [ //  TODO!
+                new ContractConfigurationDto(
+                    this.contractDuration,
+                    this.upfront,
+                    tariffConfigurations
+                )
+            ]
         )
     }
 }
- 
+
 class TariffData {
     name: String
     discountInternal: number
@@ -81,13 +86,13 @@ class TariffData {
     voucherName: String
     rate: number
     simPrice: number
-    constructor(rate: number, tariffConfiguration: TariffConfigurationDto) {
-        this.name = tariffConfiguration.name
-        this.discountInternal = tariffConfiguration.discount
-        this.bundlePriceInternal = tariffConfiguration.bundlePrice
-        this.voucherName = tariffConfiguration.voucherName
+    constructor(rate: number, discount: BenefitMatrixDiscount, bundlePrice: BenefitMatrixBundlePrice) {
+        this.name = discount.tariffName
+        this.discountInternal = discount.discount
+        this.bundlePriceInternal = bundlePrice.bundlePrice
+        this.voucherName = discount.voucherName
         this.rate = rate
-        this.simPrice = tariffConfiguration.bundlePrice - rate + tariffConfiguration.discount
+        this.simPrice = bundlePrice.bundlePrice - rate + discount.discount
     }
 
     set discount(discount: number) {

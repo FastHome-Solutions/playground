@@ -1,4 +1,4 @@
-import { TariffConfigurationDto, DeviceConfigurationDto, ContractConfigurationDto, BenefitMatrixDto } from '@/dto/benefit-matrix.dto'
+import type { BenefitMatrixDto } from '@/dto/benefit-matrix.dto'
 
 /**
  * Only the data needed to represent one row of a BenefitMatrixView table
@@ -35,11 +35,13 @@ export class BenefitMatrixRowData {
 }
 
 export class BenefitMatrixDiscount {
-    tariffName: String
+    tariffName: string
+    voucherName: string
     discount: number
 
-    constructor(tariffName: string, discount: number) {
+    constructor(tariffName: string, voucherName: string, discount: number) {
         this.tariffName = tariffName
+        this.voucherName = voucherName
         this.discount = discount
     }
 }
@@ -70,13 +72,14 @@ export function benefitMatrixToRowData(benefitMatrix: BenefitMatrixDto): Benefit
                             discounts.push(
                                 new BenefitMatrixDiscount(
                                     tariffConfiguration.name,
+                                    tariffConfiguration.voucherName,
                                     tariffConfiguration.discount,
                                 )
                             )
                             bundlePrices.push(
                                 new BenefitMatrixBundlePrice(
                                     tariffConfiguration.name,
-                                    tariffConfiguration.bundlePrice
+                                    tariffConfiguration.bundlePrice,
                                 )
                             )
                         }

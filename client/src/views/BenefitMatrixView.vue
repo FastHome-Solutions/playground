@@ -326,6 +326,5 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
                         </v-btn>
                     </template>
                 </v-snackbar>
-
     </main>
 </template>
