@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { DeviceConfigurationDto } from '@/dto/benefit-matrix.dto'
 import { RowData } from '@/components/device-configuration.businessmodels'
 import { ref } from 'vue'
+import type { BenefitMatrixRowData } from './benefit-matrix.businessmodel';
 
 let rowData = ref(RowData)
 
 let show = ref(false)
 
-function showDialog(deviceConfiguration: DeviceConfigurationDto) {
+function showDialog(deviceConfiguration: BenefitMatrixRowData) {
     rowData.value = new RowData(deviceConfiguration)
 
     show.value = true

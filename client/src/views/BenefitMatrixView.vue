@@ -207,7 +207,10 @@ function openNext() {
 
 function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
 
-    // TODO: Is there a nicer way to do this?
+    // Why cloning?
+    // 1. GraphQL adds a property __typename to all server responses to optimize their caching. 
+    //    This results in 400s when sending an unmodified value back to the server
+    // 2. Apollo return values are immutable by design
     const clonedPeriod = new Period(
         benefitMatrix.value.period.from,
         benefitMatrix.value.period.till,
@@ -217,6 +220,14 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
     benefitMatrix.value.deviceConfigurations.forEach(
         deviceConfiguration => {
             if (deviceConfiguration.manufacturer == outdatedDeviceConfiguration.manufacturer && deviceConfiguration.deviceName == outdatedDeviceConfiguration.deviceName) {
+                const otherContractConfigs = deviceConfiguration.contractConfigurations.filter(
+                    contractConfiguration => contractConfiguration.duration != updatedDeviceConfiguration.contractConfigurations[0].duration
+                ).map (
+                    contractConfiguration => cloneContractConfiguration(contractConfiguration)
+                )
+                updatedDeviceConfiguration.contractConfigurations = updatedDeviceConfiguration.contractConfigurations.concat(
+                    otherContractConfigs
+                )
                 clonedDeviceConfigurations.push(updatedDeviceConfiguration)
                 console.log(`changing ${JSON.stringify(outdatedDeviceConfiguration)} to ${JSON.stringify(updatedDeviceConfiguration)}`)
             } else {
@@ -224,29 +235,7 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
 
                 deviceConfiguration.contractConfigurations.forEach(
                     contractConfiguration => {
-
-                        const clonedTariffConfigurations: TariffConfigurationDto[] = []
-
-                        contractConfiguration.tariffConfigurations.forEach(
-                            tariffConfiguration => {
-                                clonedTariffConfigurations.push(
-                                    new TariffConfigurationDto(
-                                        tariffConfiguration.name,
-                                        tariffConfiguration.discount,
-                                        tariffConfiguration.voucherName,
-                                        tariffConfiguration.bundlePrice
-                                    )
-                                )
-                            }
-                        )
-
-                        clonedContractConfigurations.push(
-                            new ContractConfigurationDto(
-                                contractConfiguration.duration,
-                                contractConfiguration.upfront,
-                                clonedTariffConfigurations,
-                            )
-                        )
+                        clonedContractConfigurations.push(cloneContractConfiguration(contractConfiguration))
                     }
                 )
 
@@ -274,6 +263,35 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
     const overlayNoRowsTemplate = '<span class="ag-overlay-loading-center">No Data Found</span>'
 
     updateBenefitMatrixOnServer(route.params.id, clonedBenefitMatrix)
+}
+
+function cloneContractConfiguration(contractConfiguration: ContractConfigurationDto): ContractConfigurationDto {
+
+    const clonedTariffConfigurations: TariffConfigurationDto[] = []
+
+    contractConfiguration.tariffConfigurations.forEach(
+        tariffConfiguration => {
+            clonedTariffConfigurations.push(
+                new TariffConfigurationDto(
+                    tariffConfiguration.name,
+                    tariffConfiguration.discount,
+                    tariffConfiguration.voucherName,
+                    tariffConfiguration.bundlePrice
+                )
+            )
+        }
+    )
+
+    return new ContractConfigurationDto(
+        contractConfiguration.duration,
+        contractConfiguration.upfront,
+        clonedTariffConfigurations,
+    )
+}
+
+function getDataPath(data: BenefitMatrixRowData) {
+    console.log('data path for' + JSON.stringify(data)) 
+    return ['24', '36']
 }
 
 </script>
