@@ -21,7 +21,8 @@ export class BanefitMatricesService {
 
   async findOneById(id: string): Promise<BenefitMatrix> {
     this.logger.log(`findOneById called with ${id}`);
-    return await this.benefitMatrixModel.findOne({ _id: id }).exec();
+    const result = await this.benefitMatrixModel.findOne({ _id: id }).exec();
+    return this.migrateBenefitMatrix(result.toJSON());
   }
 
   async findPreviousByDate(currentDate: Date): Promise<BenefitMatrix> {
@@ -38,11 +39,42 @@ export class BanefitMatricesService {
     this.logger.log(`findAll called with ${JSON.stringify(query)}`);
     const result = await this.benefitMatrixModel.find(query).exec();
     this.logger.log(`findAll returned ${result.length}`);
-    return result;
+    return result.map(model => model.toJSON()).map(this.migrateBenefitMatrix);
   }
 
   async update(id: String, createBenefitMatrixDto: CreateBenefitMatrixDto): Promise<BenefitMatrix> {
     this.logger.log(`update called with id ${id} and ${JSON.stringify(createBenefitMatrixDto)}`);
     return await this.benefitMatrixModel.findOneAndUpdate({ _id: id }, createBenefitMatrixDto, { useFindAndModify: false, new: true });
+  }
+
+  migrateBenefitMatrix (benefitMatrix) {
+    const { _id, brand, campaign, period, portfolio, tariffNames, metaOfferList } = benefitMatrix;
+    if (metaOfferList === undefined) return benefitMatrix;
+    const deviceConfigurations = metaOfferList.map(this.createDeviceConfiguration(tariffNames));
+    return { _id, brand, campaign, period, portfolio, tariffNames, deviceConfigurations };
+  }
+
+  createDeviceConfiguration (tariffNames) {
+    return (metaOffer) => {
+      const { manufacturer, deviceName, tco, durationDependentData } = metaOffer;
+      if (durationDependentData === undefined) return metaOffer
+      const contractConfigurations = durationDependentData.map(this.createContractConfiguration(tariffNames));
+      return { manufacturer, deviceName, tco, contractConfigurations };
+    }
+  }
+
+  createContractConfiguration (tariffNames) {
+    return (durationDependentData) => {
+      const { contractDuration, upfronts, voucherNames, discounts, bundlePrices } = durationDependentData;
+      const tariffConfigurations = tariffNames.map(
+        (name, i) => ({
+          name,
+          discount: discounts[i],
+          voucherName: voucherNames[i],
+          bundlePrices: bundlePrices.map(bp => bp[i]),
+        })
+      );
+      return { duration: contractDuration, upfronts, tariffConfigurations };
+    }
   }
 }
