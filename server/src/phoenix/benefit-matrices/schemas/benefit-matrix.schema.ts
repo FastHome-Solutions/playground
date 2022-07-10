@@ -68,9 +68,9 @@ class ContractConfiguration {
   @Prop()
   duration: Number
 
-  @Field()
+  @Field(() => [Number])
   @Prop()
-  upfront: Number
+  upfronts: Number[]
 
   @Field(() => [TariffConfiguration])
   @Prop()
@@ -91,9 +91,9 @@ class TariffConfiguration {
   @Prop()
   voucherName: String
   
-  @Field()
+  @Field(() => [Number])
   @Prop()
-  bundlePrice: Number
+  bundlePrices: Number[]
 }
 
 export const BenefitMatrixSchema = SchemaFactory.createForClass(BenefitMatrix);

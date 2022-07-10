@@ -52,8 +52,8 @@ class ContractConfigurationDto {
     @Field()
     duration: Number
 
-    @Field()
-    upfront: Number
+    @Field(() => [Number])
+    upfronts: Number[]
 
     @Field(() => [TariffConfigurationDto])
     tariffConfigurations: TariffConfigurationDto[]
@@ -70,6 +70,6 @@ class TariffConfigurationDto {
     @Field()
     voucherName: String
 
-    @Field()
-    bundlePrice: Number
+    @Field(() => [Number])
+    bundlePrices: Number[]
 }
