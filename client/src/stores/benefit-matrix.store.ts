@@ -59,12 +59,12 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
               tco
               contractConfigurations {
                 duration
-                upfront
+                upfronts
                 tariffConfigurations {
                   name
                   discount
                   voucherName
-                  bundlePrice
+                  bundlePrices
                 }
               }
             }
