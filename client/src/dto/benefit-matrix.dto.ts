@@ -52,16 +52,16 @@ export class DeviceConfigurationDto {
 
 export class ContractConfigurationDto {
     duration: Number
-    upfront: Number
+    upfronts: Number[]
     tariffConfigurations: TariffConfigurationDto[]
 
     constructor(
         duration: Number,
-        upfront: Number,
+        upfronts: Number[],
         tariffConfigurations: TariffConfigurationDto[]
     ) {
         this.duration = duration
-        this.upfront = upfront
+        this.upfronts = upfronts
         this.tariffConfigurations = tariffConfigurations
     }
 }
@@ -70,17 +70,17 @@ export class TariffConfigurationDto {
     name: String
     discount: Number
     voucherName: String
-    bundlePrice: Number
+    bundlePrices: Number[]
 
     constructor(
         name: String,
         discount: Number,
         voucherName: String,
-        bundlePrice: Number,
+        bundlePrices: Number[],
     ) {
         this.name = name
         this.discount = discount
         this.voucherName = voucherName
-        this.bundlePrice = bundlePrice
+        this.bundlePrices = bundlePrices
     }
 }

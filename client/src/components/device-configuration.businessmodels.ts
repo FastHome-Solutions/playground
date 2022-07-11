@@ -7,16 +7,20 @@ import type { BenefitMatrixBundlePrice, BenefitMatrixDiscount, BenefitMatrixRowD
 export class RowData {
     manufacturer: String
     deviceName: String
-    upfrontInternal: number
+    private upfrontInternal: number
+    private originalUpfronts: number[]
+    private originalUpfrontIndex: number
     tcoInternal: number
     contractDuration: number
     rate: number
     tariffs: TariffData[] = []
-  
+
     constructor(rowData: BenefitMatrixRowData) {
         this.manufacturer = rowData.manufacturer
         this.deviceName = rowData.deviceName
         this.upfrontInternal = rowData.upfront
+        this.originalUpfronts = [...rowData.allUpfronts]
+        this.originalUpfrontIndex = this.originalUpfronts.indexOf(this.upfrontInternal)
         this.tcoInternal = rowData.tco
         this.contractDuration = rowData.contractDuration
         this.rate = (this.tco - this.upfrontInternal) / this.contractDuration
@@ -51,6 +55,7 @@ export class RowData {
 
     toDeviceConfigurationDto(): DeviceConfigurationDto {
         const tariffConfigurations: TariffConfigurationDto[] = []
+
         this.tariffs.forEach(
             tariff => {
                 tariffConfigurations.push(
@@ -58,20 +63,22 @@ export class RowData {
                         tariff.name,
                         tariff.discount,
                         tariff.voucherName,
-                        tariff.bundlePrice
+                        tariff.bundlePrices,
                     )
                 )
             }
         )
 
+        this.originalUpfronts[this.originalUpfrontIndex] = this.upfront
+
         return new DeviceConfigurationDto(
             this.manufacturer,
             this.deviceName,
             this.tco,
-            [ //  TODO!
+            [
                 new ContractConfigurationDto(
                     this.contractDuration,
-                    this.upfront,
+                    this.originalUpfronts,
                     tariffConfigurations
                 )
             ]
@@ -83,6 +90,8 @@ class TariffData {
     name: String
     discountInternal: number
     bundlePriceInternal: number
+    private originalBundlePrices: number[]
+    private originalBundlePriceIndex: number
     voucherName: String
     rate: number
     simPrice: number
@@ -90,6 +99,8 @@ class TariffData {
         this.name = discount.tariffName
         this.discountInternal = discount.discount
         this.bundlePriceInternal = bundlePrice.bundlePrice
+        this.originalBundlePrices = [...bundlePrice.allBundlePrices]
+        this.originalBundlePriceIndex = this.originalBundlePrices.indexOf(this.bundlePriceInternal)
         this.voucherName = discount.voucherName
         this.rate = rate
         this.simPrice = bundlePrice.bundlePrice - rate + discount.discount
@@ -111,5 +122,10 @@ class TariffData {
 
     get bundlePrice() {
         return this.bundlePriceInternal
+    }
+
+    get bundlePrices() {
+        this.originalBundlePrices[this.originalBundlePriceIndex] = this.bundlePriceInternal
+        return this.originalBundlePrices
     }
 }

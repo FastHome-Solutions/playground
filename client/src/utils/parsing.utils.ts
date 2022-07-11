@@ -132,7 +132,7 @@ export function parseSpreadsheet(metadata: SpreadsheetMetadata, spreadsheet: [[]
         contractConfigurations.push(
             new ContractConfigurationDto(
                 contractDuration,
-                row[firstContentColumn + upfrontIndex], // upfront
+                [row[firstContentColumn + upfrontIndex]], // upfronts
                 tariffConfigurations,
             )
         )

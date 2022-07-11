@@ -8,6 +8,7 @@ export class BenefitMatrixRowData {
     deviceName: string
     contractDuration: number
     upfront: number
+    allUpfronts: number[]
     rate: number
     tco: number
     discounts: BenefitMatrixDiscount[]
@@ -18,6 +19,7 @@ export class BenefitMatrixRowData {
         deviceName: string,
         contractDuration: number,
         upfront: number,
+        allUpfronts: number[],
         rate: number,
         tco: number,
         discounts: BenefitMatrixDiscount[],
@@ -27,6 +29,7 @@ export class BenefitMatrixRowData {
         this.deviceName = deviceName
         this.contractDuration = contractDuration
         this.upfront = upfront
+        this.allUpfronts = allUpfronts
         this.rate = rate
         this.tco = tco
         this.discounts = discounts
@@ -49,10 +52,12 @@ export class BenefitMatrixDiscount {
 export class BenefitMatrixBundlePrice {
     tariffName: String
     bundlePrice: number
+    allBundlePrices: number[]
 
-    constructor(tariffName: string, bundlePrice: number) {
+    constructor(tariffName: string, bundlePrice: number, allBundlePrices: number[]) {
         this.tariffName = tariffName
         this.bundlePrice = bundlePrice
+        this.allBundlePrices = allBundlePrices
     }
 }
 
@@ -63,40 +68,46 @@ export function benefitMatrixToRowData(benefitMatrix: BenefitMatrixDto): Benefit
         deviceConfiguration => {
             deviceConfiguration.contractConfigurations.forEach(
                 contractConfiguration => {
+                    contractConfiguration.tariffConfigurations[0].bundlePrices.forEach(
+                        (_, i: number) => {
 
-                    const discounts: BenefitMatrixDiscount[] = []
-                    const bundlePrices: BenefitMatrixBundlePrice[] = []
+                            const discounts: BenefitMatrixDiscount[] = []
+                            const bundlePrices: BenefitMatrixBundlePrice[] = []
 
-                    contractConfiguration.tariffConfigurations.forEach(
-                        tariffConfiguration => {
-                            discounts.push(
-                                new BenefitMatrixDiscount(
-                                    tariffConfiguration.name,
-                                    tariffConfiguration.voucherName,
-                                    tariffConfiguration.discount,
-                                )
+                            contractConfiguration.tariffConfigurations.forEach(
+                                tariffConfiguration => {
+                                    discounts.push(
+                                        new BenefitMatrixDiscount(
+                                            tariffConfiguration.name,
+                                            tariffConfiguration.voucherName,
+                                            tariffConfiguration.discount,
+                                        )
+                                    )
+                                    bundlePrices.push(
+                                        new BenefitMatrixBundlePrice(
+                                            tariffConfiguration.name,
+                                            tariffConfiguration.bundlePrices[i],
+                                            tariffConfiguration.bundlePrices,
+                                        )
+                                    )
+                                }
                             )
-                            bundlePrices.push(
-                                new BenefitMatrixBundlePrice(
-                                    tariffConfiguration.name,
-                                    tariffConfiguration.bundlePrice,
-                                )
-                            )
+
+                            const rate = (deviceConfiguration.tco - contractConfiguration.upfronts[i]) / contractConfiguration.duration
+
+                            rows.push(new BenefitMatrixRowData(
+                                deviceConfiguration.manufacturer,
+                                deviceConfiguration.deviceName,
+                                contractConfiguration.duration,
+                                contractConfiguration.upfronts[i],
+                                contractConfiguration.upfronts,
+                                rate,
+                                deviceConfiguration.tco,
+                                discounts,
+                                bundlePrices,
+                            ))
                         }
                     )
-
-                    const rate = (deviceConfiguration.tco - contractConfiguration.upfront) / contractConfiguration.duration
-
-                    rows.push(new BenefitMatrixRowData(
-                        deviceConfiguration.manufacturer,
-                        deviceConfiguration.deviceName,
-                        contractConfiguration.duration,
-                        contractConfiguration.upfront,
-                        rate,
-                        deviceConfiguration.tco,
-                        discounts,
-                        bundlePrices,
-                    ))
                 }
             )
         }

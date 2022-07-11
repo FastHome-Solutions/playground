@@ -276,7 +276,7 @@ function cloneContractConfiguration(contractConfiguration: ContractConfiguration
                     tariffConfiguration.name,
                     tariffConfiguration.discount,
                     tariffConfiguration.voucherName,
-                    tariffConfiguration.bundlePrice
+                    tariffConfiguration.bundlePrices
                 )
             )
         }
@@ -284,7 +284,7 @@ function cloneContractConfiguration(contractConfiguration: ContractConfiguration
 
     return new ContractConfigurationDto(
         contractConfiguration.duration,
-        contractConfiguration.upfront,
+        contractConfiguration.upfronts,
         clonedTariffConfigurations,
     )
 }
