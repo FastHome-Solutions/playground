@@ -39,7 +39,7 @@ export class BanefitMatricesService {
     this.logger.log(`findAll called with ${JSON.stringify(query)}`);
     const result = await this.benefitMatrixModel.find(query).exec();
     this.logger.log(`findAll returned ${result.length}`);
-    return result.map(model => model.toJSON()).map(this.migrateBenefitMatrix);
+    return result.map(model => model.toJSON()).map(this.migrateBenefitMatrix.bind(this));
   }
 
   async update(id: String, createBenefitMatrixDto: CreateBenefitMatrixDto): Promise<BenefitMatrix> {
