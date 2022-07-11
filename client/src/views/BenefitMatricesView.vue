@@ -57,24 +57,6 @@ const columnDefs = [
     maxWidth: 250,
     type: 'rightAligned',
   },
-  {
-    headerName: 'Edit',
-    headerClass: 'text-left',
-    field: 'edit',
-    cellClass: 'text-left',
-    width: 180,
-    minWidth: 130,
-    maxWidth: 250,
-    type: 'rightAligned',
-    cellRenderer: editCellRenderer,
-    cellRendererParams: {
-      clicked: function (field) {
-        alert(`${field} was clicked`)
-      }
-    },
-    sortable: false,
-    filter: false
-  },
 ]
 
 function editCellRenderer(params) {
@@ -99,17 +81,7 @@ const overlayLoadingTemplate = '<span class=" ag-overlay-loading-center">Loading
 const overlayNoRowsTemplate = '<span class="ag-overlay-loading-center">No Data Found</span>'
 
 function cellClicked(event) {
-  if (
-    event.column.colId === 'edit' &&
-    event.event.target.dataset.action
-  ) {
-    let action = event.event.target.dataset.action
-    if (action === 'edit') {
-      console.log('edit')
-    }
-  } else {
     router.push({ name: 'benefit-matrix', params: { id: event.data._id } })
-  }
 }
 
 fetchBenefitMatricesFromServer()
