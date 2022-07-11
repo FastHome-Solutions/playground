@@ -38,6 +38,7 @@ const columnDefs = ref(null)
 const rowData = ref(null)
 
 function updateData(id: String) {
+    rowData.value = null
     fetchBenefitMatrixFromServer(id)
         .then(() => {
             const rows = benefitMatrixToRowData(benefitMatrix.value)
