@@ -25,12 +25,11 @@ export class RowData {
         this.contractDuration = rowData.contractDuration
         this.rate = (this.tco - this.upfrontInternal) / this.contractDuration
 
-        rowData.discounts.forEach(
+        this.tariffs = rowData.discounts.map(
             (discount, i) => {
                 const bundlePrice = rowData.bundlePrices[i]
-                this.tariffs.push(
-                    new TariffData(this.rate, discount, bundlePrice)
-                )
+
+                return new TariffData(this.rate, discount, bundlePrice)
             }
         )
     }

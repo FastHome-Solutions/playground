@@ -21,7 +21,6 @@ const { nextBenefitMatrix } = storeToRefs(benefitMatrixStore)
 const { fetchBenefitMatrixFromServer } = useBenefitMatrixStore()
 const { updateBenefitMatrixOnServer } = useBenefitMatrixStore()
 
-
 const route = useRoute()
 
 watch(
@@ -218,37 +217,30 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
         benefitMatrix.value.period.from,
         benefitMatrix.value.period.till,
     )
-    const clonedDeviceConfigurations: DeviceConfigurationDto[] = []
-
-    benefitMatrix.value.deviceConfigurations.forEach(
+    const clonedDeviceConfigurations: DeviceConfigurationDto[] = benefitMatrix.value.deviceConfigurations.map(
         deviceConfiguration => {
             if (deviceConfiguration.manufacturer == outdatedDeviceConfiguration.manufacturer && deviceConfiguration.deviceName == outdatedDeviceConfiguration.deviceName) {
                 const otherContractConfigs = deviceConfiguration.contractConfigurations.filter(
                     contractConfiguration => contractConfiguration.duration != updatedDeviceConfiguration.contractConfigurations[0].duration
-                ).map (
+                ).map(
                     contractConfiguration => cloneContractConfiguration(contractConfiguration)
                 )
                 updatedDeviceConfiguration.contractConfigurations = updatedDeviceConfiguration.contractConfigurations.concat(
                     otherContractConfigs
                 )
-                clonedDeviceConfigurations.push(updatedDeviceConfiguration)
-                console.log(`changing ${JSON.stringify(outdatedDeviceConfiguration)} to ${JSON.stringify(updatedDeviceConfiguration)}`)
+                return updatedDeviceConfiguration
             } else {
-                const clonedContractConfigurations: ContractConfigurationDto[] = []
-
-                deviceConfiguration.contractConfigurations.forEach(
+                const clonedContractConfigurations: ContractConfigurationDto[] = deviceConfiguration.contractConfigurations.map(
                     contractConfiguration => {
-                        clonedContractConfigurations.push(cloneContractConfiguration(contractConfiguration))
+                        return cloneContractConfiguration(contractConfiguration)
                     }
                 )
 
-                clonedDeviceConfigurations.push(
-                    new DeviceConfigurationDto(
-                        deviceConfiguration.manufacturer,
-                        deviceConfiguration.deviceName,
-                        deviceConfiguration.tco,
-                        clonedContractConfigurations,
-                    )
+                return new DeviceConfigurationDto(
+                    deviceConfiguration.manufacturer,
+                    deviceConfiguration.deviceName,
+                    deviceConfiguration.tco,
+                    clonedContractConfigurations,
                 )
             }
         }
@@ -267,20 +259,17 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
 
 function cloneContractConfiguration(contractConfiguration: ContractConfigurationDto): ContractConfigurationDto {
 
-    const clonedTariffConfigurations: TariffConfigurationDto[] = []
-
-    contractConfiguration.tariffConfigurations.forEach(
-        tariffConfiguration => {
-            clonedTariffConfigurations.push(
-                new TariffConfigurationDto(
+    const clonedTariffConfigurations: TariffConfigurationDto[] =
+        contractConfiguration.tariffConfigurations.map(
+            tariffConfiguration => {
+                return new TariffConfigurationDto(
                     tariffConfiguration.name,
                     tariffConfiguration.discount,
                     tariffConfiguration.voucherName,
                     tariffConfiguration.bundlePrices
                 )
-            )
-        }
-    )
+            }
+        )
 
     return new ContractConfigurationDto(
         contractConfiguration.duration,
@@ -290,7 +279,7 @@ function cloneContractConfiguration(contractConfiguration: ContractConfiguration
 }
 
 function getDataPath(data: BenefitMatrixRowData) {
-    console.log('data path for' + JSON.stringify(data)) 
+    console.log('data path for' + JSON.stringify(data))
     return ['24', '36']
 }
 
@@ -307,7 +296,7 @@ function getDataPath(data: BenefitMatrixRowData) {
                 <div class="text-h6">{{ `${benefitMatrix.brand} ${benefitMatrix.portfolio}` }}</div>
                 <div class="text-h6" v-if="benefitMatrix.period">
                     {{ `${moment(benefitMatrix.period.from).format("D MMM")} -
-                    ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                     }}
                 </div>
                 <v-card-text>
@@ -324,16 +313,17 @@ function getDataPath(data: BenefitMatrixRowData) {
         <DeviceConfigurationDialog ref="dialog" @save="update" />
 
         <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{ `<-
-                ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
-                ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}` }}</v-btn>
+                        ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
+                        ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}`
+        }}</v-btn>
                 <v-btn class="text-h6" v-if="benefitMatrix && benefitMatrix.period" disabled>
                     {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} -
-                    ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                     }}</v-btn>
                 <v-btn class="text-h6" v-if="nextBenefitMatrix && nextBenefitMatrix.period" @click="openNext">{{
-                    `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
-                    ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
-                    }}</v-btn>
+                        `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
+                                    ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
+                }}</v-btn>
 
                 <v-snackbar v-model="error">
                     {{ error.message }}
