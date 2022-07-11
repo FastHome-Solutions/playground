@@ -82,15 +82,15 @@ class TariffConfiguration {
   @Field()
   @Prop()
   name: String
-  
+
   @Field()
   @Prop()
   discount: Number
-  
-  @Field()
+
+  @Field(() => String, { nullable: true })
   @Prop()
   voucherName: String
-  
+
   @Field(() => [Number])
   @Prop()
   bundlePrices: Number[]
