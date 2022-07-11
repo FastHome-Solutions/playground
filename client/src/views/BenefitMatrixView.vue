@@ -5,7 +5,7 @@ import moment from 'moment'
 import { AgGridVue } from 'ag-grid-vue3'
 import 'ag-grid-community/dist/styles/ag-grid.css'
 import 'ag-grid-community/dist/styles/ag-theme-material.css'
-import { useRoute } from 'vue-router'
+import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 import { ref, watch } from 'vue'
 import router from '@/router'
 import DeviceConfigurationDialog from '@/components/DeviceConfigurationDialog.vue'
@@ -23,14 +23,9 @@ const { updateBenefitMatrixOnServer } = useBenefitMatrixStore()
 
 const route = useRoute()
 
-watch(
-    () => route.params.id,
-    (newId, oldId) => {
-        if (newId) {
-            updateData(newId)
-        }
-    }
-)
+onBeforeRouteUpdate(async (to, from) => {
+    updateData(to.params.id)
+})
 
 const grid = ref(null)
 const columnDefs = ref(null)
