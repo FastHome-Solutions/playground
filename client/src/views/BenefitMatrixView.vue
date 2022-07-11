@@ -54,7 +54,6 @@ function updateData(id: String) {
                     cellRenderer: (params) => params.node.childIndex + 1,
                     editable: false,
                     maxWidth: 40,
-                    suppressSorting: true,
                 },
                 {
                     headerName: 'Hersteller',
@@ -180,6 +179,9 @@ const defaultColDef = {
     colResizeDefault: 'shift',
 }
 
+const overlayLoadingTemplate = '<span class=" ag-overlay-loading-center">Loading Benefit Matrix</span>'
+const overlayNoRowsTemplate = '<span class="ag-overlay-loading-center">No Data Found</span>'
+
 updateData(route.params.id)
 
 const dialog = ref(DeviceConfigurationDialog)
@@ -260,9 +262,6 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
         clonedDeviceConfigurations,
     )
 
-    const overlayLoadingTemplate = '<span class=" ag-overlay-loading-center">Loading Promotions</span>'
-    const overlayNoRowsTemplate = '<span class="ag-overlay-loading-center">No Data Found</span>'
-
     updateBenefitMatrixOnServer(route.params.id, clonedBenefitMatrix)
 }
 
@@ -325,16 +324,16 @@ function getDataPath(data: BenefitMatrixRowData) {
         <DeviceConfigurationDialog ref="dialog" @save="update" />
 
         <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{ `<-
-        ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
-        ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}` }}</v-btn>
+                ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
+                ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}` }}</v-btn>
                 <v-btn class="text-h6" v-if="benefitMatrix && benefitMatrix.period" disabled>
                     {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} -
                     ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                     }}</v-btn>
                 <v-btn class="text-h6" v-if="nextBenefitMatrix && nextBenefitMatrix.period" @click="openNext">{{
-                `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
-                ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
-                }}</v-btn>
+                    `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
+                    ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
+                    }}</v-btn>
 
                 <v-snackbar v-model="error">
                     {{ error.message }}

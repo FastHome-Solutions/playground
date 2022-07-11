@@ -53,7 +53,7 @@
     </v-footer>
 
 
-    <v-bottom-navigation v-model="value">
+    <v-bottom-navigation >
       <v-btn value="recent">
         <span>Recent</span>
 

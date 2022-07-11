@@ -23,7 +23,6 @@ const columnDefs = [
     cellRenderer: (params) => params.node.childIndex + 1,
     editable: false,
     maxWidth: 40,
-    suppressSorting: true,
   },
   {
     headerName: 'Period',
