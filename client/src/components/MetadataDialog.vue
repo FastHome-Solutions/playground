@@ -1,20 +1,15 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { useUploadStore } from '@/stores/upload.store'
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
 import moment from 'moment'
-import { SpreadsheetMetadata, parseSpreadsheet } from '@/utils/parsing.utils'
+import { SpreadsheetMetadata, parseSpreadsheet, parseMetadataSuggestions } from '@/utils/parsing.utils'
 import { ref } from 'vue'
 import router from '@/router'
-
-const uploadStore = useUploadStore()
 
 const { uploadSpreadsheetToServer } = useBenefitMatrixStore()
 const { benefitMatrix } = storeToRefs(useBenefitMatrixStore())
 
 const dateFormat = 'DD.MM.YYYY HH:mm'
-
-uploadStore.parseMetadata(uploadStore.fileName, uploadStore.spreadsheet)
 
 var from = ref('')
 var till = ref('')
@@ -23,11 +18,14 @@ var rangeEnd = ref('')
 var portfolio = ref('Online')
 
 var show = ref(false)
-function showDialog() {
-    from.value = moment(uploadStore.metadataSuggestions.from).format(dateFormat)
-    till.value = moment(uploadStore.metadataSuggestions.to).format(dateFormat)
-    rangeStart.value = uploadStore.metadataSuggestions.rangeStart
-    rangeEnd.value = uploadStore.metadataSuggestions.rangeEnd
+let spreadsheet = [[]]
+function showDialog(fileName: string, parsedSpreadsheet: [[]]) {
+    spreadsheet = parsedSpreadsheet
+    const metadataSuggestions = parseMetadataSuggestions(fileName, spreadsheet)
+    from.value = moment(metadataSuggestions.from).format(dateFormat)
+    till.value = moment(metadataSuggestions.till).format(dateFormat)
+    rangeStart.value = metadataSuggestions.rangeStart
+    rangeEnd.value = metadataSuggestions.rangeEnd
     show.value = true
 }
 defineExpose({showDialog})
@@ -50,7 +48,7 @@ const portfolioRules = [
 
 async function parseSpreadsheetWithInput() {
     const metadata = new SpreadsheetMetadata(moment(from.value, dateFormat).toDate(), moment(till.value, dateFormat).toDate(), rangeStart.value, rangeEnd.value, portfolio.value)
-    const parsedBenefitMatrix = parseSpreadsheet(metadata, uploadStore.spreadsheet)
+    const parsedBenefitMatrix = parseSpreadsheet(metadata, spreadsheet)
     await uploadSpreadsheetToServer(parsedBenefitMatrix)
     router.push({ name: 'benefit-matrix', params: { id: benefitMatrix.value._id } })
 }

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
-import { useUploadStore } from '@/stores/upload.store'
 import { AgGridVue } from "ag-grid-vue3"
 import "ag-grid-community/dist/styles/ag-grid.css"
 import "ag-grid-community/dist/styles/ag-theme-material.css"
@@ -9,9 +8,12 @@ import moment from 'moment'
 import router from '@/router'
 import MetadataDialog from '@/components/MetadataDialog.vue'
 import { ref } from 'vue'
+import { file } from '@babel/types'
+import { uploadFile } from '@/utils/parsing.utils'
 
 const { benefitMatrices, loading, error } = storeToRefs(useBenefitMatrixStore())
 const { fetchBenefitMatricesFromServer } = useBenefitMatrixStore()
+
 
 const columnDefs = [
   {
@@ -87,12 +89,11 @@ function cellClicked(event) {
 fetchBenefitMatricesFromServer()
 
 // File Upload
-const uploadStore = useUploadStore()
 const dialog = ref(null)
 async function onFileUpload(event) {
-  await uploadStore.uploadSpreadsheet(event.target.files[0])
-  uploadStore.parseMetadata(uploadStore.fileName, uploadStore.spreadsheet)
-  dialog.value.showDialog()
+  const spreadsheet = await uploadFile(event.target.files[0])
+  const fileName = event.target.files[0].name
+  dialog.value.showDialog(fileName, spreadsheet)
 }
 </script>
 
