@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
 import moment from 'moment'
 import { SpreadsheetMetadata, parseSpreadsheet, parseMetadataSuggestions } from '@/utils/parsing.utils'
 import { ref } from 'vue'
-import router from '@/router'
 
-const { uploadSpreadsheetToServer } = useBenefitMatrixStore()
-const { benefitMatrix } = storeToRefs(useBenefitMatrixStore())
+const emit = defineEmits(['parsed-spreadsheet'])
 
 const dateFormat = 'DD.MM.YYYY HH:mm'
 
@@ -18,6 +14,7 @@ var rangeEnd = ref('')
 var portfolio = ref('Online')
 
 var show = ref(false)
+
 let spreadsheet = [[]]
 function showDialog(fileName: string, parsedSpreadsheet: [[]]) {
     spreadsheet = parsedSpreadsheet
@@ -49,10 +46,8 @@ const portfolioRules = [
 async function parseSpreadsheetWithInput() {
     const metadata = new SpreadsheetMetadata(moment(from.value, dateFormat).toDate(), moment(till.value, dateFormat).toDate(), rangeStart.value, rangeEnd.value, portfolio.value)
     const parsedBenefitMatrix = parseSpreadsheet(metadata, spreadsheet)
-    await uploadSpreadsheetToServer(parsedBenefitMatrix)
-    router.push({ name: 'benefit-matrix', params: { id: benefitMatrix.value._id } })
+    emit('parsed-spreadsheet', parsedBenefitMatrix)
 }
-
 
 </script>
 

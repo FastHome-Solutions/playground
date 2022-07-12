@@ -11,8 +11,8 @@ import { ref } from 'vue'
 import { file } from '@babel/types'
 import { uploadFile } from '@/utils/parsing.utils'
 
-const { benefitMatrices, loading, error } = storeToRefs(useBenefitMatrixStore())
-const { fetchBenefitMatricesFromServer } = useBenefitMatrixStore()
+const { benefitMatrix, benefitMatrices, loading, error } = storeToRefs(useBenefitMatrixStore())
+const { fetchBenefitMatricesFromServer, uploadSpreadsheetToServer } = useBenefitMatrixStore()
 
 
 const columnDefs = [
@@ -95,6 +95,11 @@ async function onFileUpload(event) {
   const fileName = event.target.files[0].name
   dialog.value.showDialog(fileName, spreadsheet)
 }
+
+async function uploadBenefitMatrix(parsedBenefitMatrix: BenefitMatrixDto) {
+  await uploadSpreadsheetToServer(parsedBenefitMatrix)
+  router.push({ name: 'benefit-matrix', params: { id: benefitMatrix.value._id } })
+}
 </script>
 
 <template>
@@ -111,7 +116,7 @@ async function onFileUpload(event) {
       </v-file-input>
     </v-card-title>
 
-    <MetadataDialog ref="dialog" />
+    <MetadataDialog ref="dialog" @parsed-spreadsheet='uploadBenefitMatrix' />
 
     <p v-if="loading">Loading posts...</p>
     <p v-if="error">{{ error.message }}</p>
