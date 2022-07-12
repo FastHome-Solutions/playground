@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useBenefitMatrixStore } from '@/stores/benefit-matrix.store'
-import { AgGridVue } from "ag-grid-vue3"
-import "ag-grid-community/dist/styles/ag-grid.css"
-import "ag-grid-community/dist/styles/ag-theme-material.css"
+import ItemGrid from '@/components/ItemGrid.vue'
 import moment from 'moment'
 import router from '@/router'
 import MetadataDialog from '@/components/MetadataDialog.vue'
@@ -61,29 +59,8 @@ const columnDefs = [
   },
 ]
 
-function editCellRenderer(params) {
-  let eGui = document.createElement('div');
-  eGui.innerHTML = `<button data-action="edit" >Edit</button>`
-  return eGui;
-}
-
-// DefaultColDef sets props common to all Columns
-const defaultColDef = {
-  editable: false,
-  sortable: true,
-  filter: true,
-  resizable: true,
-  maxWidth: 320,
-  minWidth: 50,
-  rowSelection: 'single',
-  colResizeDefault: 'shift',
-}
-
-const overlayLoadingTemplate = '<span class=" ag-overlay-loading-center">Loading Promotions</span>'
-const overlayNoRowsTemplate = '<span class="ag-overlay-loading-center">No Data Found</span>'
-
 function cellClicked(event) {
-    router.push({ name: 'benefit-matrix', params: { id: event.data._id } })
+  router.push({ name: 'benefit-matrix', params: { id: event.data._id } })
 }
 
 fetchBenefitMatricesFromServer()
@@ -120,13 +97,10 @@ async function uploadBenefitMatrix(parsedBenefitMatrix: BenefitMatrixDto) {
 
     <p v-if="loading">Loading posts...</p>
     <p v-if="error">{{ error.message }}</p>
-    <ag-grid-vue v-if="benefitMatrices" style="width: 100%; height: 400px" class="ag-theme-material"
-      :columnDefs="columnDefs" :rowData="benefitMatrices" :animateRows="true" :debug="true"
-      :defaultColDef="defaultColDef" suppressMovableColumns @cell-clicked="cellClicked" :rowHeight="40"
-      :sortingOrder="['desc', 'asc', null]" :overlayLoadingTemplate="overlayLoadingTemplate"
-      :overlayNoRowsTemplate="overlayNoRowsTemplate">
-    </ag-grid-vue>
 
+    <ItemGrid v-if="benefitMatrices" style="width: 100%; height: 400px" :columnDefs="columnDefs"
+      :rowData="benefitMatrices" @cell-clicked="cellClicked"></ItemGrid>
+   
 
   </main>
 </template>
