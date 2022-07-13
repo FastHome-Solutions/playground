@@ -12,6 +12,7 @@ import DeviceConfigurationDialog from '@/components/DeviceConfigurationDialog.vu
 import type { ContractConfigurationInputType, DeviceConfigurationInputType } from '@/dto/benefit-matrix.dto'
 import { BenefitMatrixRowData, benefitMatrixToRowData } from '@/components/benefit-matrix.businessmodel'
 import { cloneDeep } from '@apollo/client/utilities'
+import { computed } from '@vue/reactivity'
 
 
 const benefitMatrixStore = useBenefitMatrixStore()
@@ -29,15 +30,17 @@ onBeforeRouteUpdate(async (to, from) => {
 })
 
 const columnDefs = ref(null)
-const rowData = ref(null)
+
+const rowData = computed(() => benefitMatrixToRowData(benefitMatrix.value))
+
+// const rows = benefitMatrixToRowData(benefitMatrix.value)
+// rowData.value = rows
+
 
 function updateData(id: String) {
     rowData.value = null
     fetchBenefitMatrixFromServer(id)
         .then(() => {
-            const rows = benefitMatrixToRowData(benefitMatrix.value)
-            rowData.value = rows
-
             columnDefs.value = [
                 {
                     headerName: '',
