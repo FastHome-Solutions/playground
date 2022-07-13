@@ -8,7 +8,6 @@ export class BenefitMatrixRowData {
     deviceName: string
     contractDuration: number
     upfront: number
-    allUpfronts: number[]
     rate: number
     tco: number
     discounts: BenefitMatrixDiscount[]
@@ -19,7 +18,6 @@ export class BenefitMatrixRowData {
         deviceName: string,
         contractDuration: number,
         upfront: number,
-        allUpfronts: number[],
         rate: number,
         tco: number,
         discounts: BenefitMatrixDiscount[],
@@ -29,7 +27,6 @@ export class BenefitMatrixRowData {
         this.deviceName = deviceName
         this.contractDuration = contractDuration
         this.upfront = upfront
-        this.allUpfronts = allUpfronts
         this.rate = rate
         this.tco = tco
         this.discounts = discounts
@@ -100,7 +97,6 @@ export function benefitMatrixToRowData(benefitMatrix: BenefitMatrixDto): Benefit
                                 deviceConfiguration.deviceName,
                                 contractConfiguration.duration,
                                 contractConfiguration.upfronts[i],
-                                contractConfiguration.upfronts,
                                 rate,
                                 deviceConfiguration.tco,
                                 discounts,

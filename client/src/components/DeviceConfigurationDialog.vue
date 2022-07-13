@@ -20,10 +20,8 @@ function showDialog() {
 
 const emit = defineEmits(['save',])
 
-function save() {
-    // const dto = rowData.value.toDeviceConfigurationDto()
-    // emit('save', dto)
-
+function save(updatedDeviceConfiguration: BenefitMatrixRowData) {
+    emit('save', updatedDeviceConfiguration)
     show.value = false
 }
 

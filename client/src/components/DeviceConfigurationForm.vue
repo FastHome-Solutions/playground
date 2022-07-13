@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { RowData } from '@/components/device-configuration.businessmodels'
 import { cloneDeep } from '@apollo/client/utilities';
 import { ref, watch } from 'vue'
 import { BenefitMatrixRowData } from './benefit-matrix.businessmodel';
@@ -15,7 +14,7 @@ const clonedDeviceConfiguration = ref(cloneDeep(props.deviceConfiguration))
 const emit = defineEmits(['save', 'cancel'])
 
 function save() {
-    emit('save')
+    emit('save', clonedDeviceConfiguration.value)
 }
 
 function cancel() {

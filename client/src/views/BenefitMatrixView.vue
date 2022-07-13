@@ -9,8 +9,9 @@ import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 import { ref, watch } from 'vue'
 import router from '@/router'
 import DeviceConfigurationDialog from '@/components/DeviceConfigurationDialog.vue'
-import { BenefitMatrixDto, ContractConfigurationDto, DeviceConfigurationDto, Period, TariffConfigurationDto, } from '@/dto/benefit-matrix.dto'
+import type { ContractConfigurationDto, DeviceConfigurationDto } from '@/dto/benefit-matrix.dto'
 import { BenefitMatrixRowData, benefitMatrixToRowData } from '@/components/benefit-matrix.businessmodel'
+import { cloneDeep } from '@apollo/client/utilities'
 
 
 const benefitMatrixStore = useBenefitMatrixStore()
@@ -187,80 +188,36 @@ function openNext() {
     router.push({ name: 'benefit-matrix', params: { id: nextBenefitMatrix.value._id } })
 }
 
-function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
+function update(updatedDeviceConfiguration: BenefitMatrixRowData) {
+    // Cloning because Apollo return values are immutable by design
+    const clonedBenefitMatrix = cloneDeep(benefitMatrix.value)
+    // Need to remove _id in order for GraphQL to accept the data
+    delete clonedBenefitMatrix._id
 
-    // Why cloning?
-    // 1. GraphQL adds a property __typename to all server responses to optimize their caching. 
-    //    This results in 400s when sending an unmodified value back to the server
-    // 2. Apollo return values are immutable by design
-    const clonedPeriod = new Period(
-        benefitMatrix.value.period.from,
-        benefitMatrix.value.period.till,
-    )
-    const clonedDeviceConfigurations: DeviceConfigurationDto[] = benefitMatrix.value.deviceConfigurations.map(
-        deviceConfiguration => {
-            if (deviceConfiguration.manufacturer == selectedDeviceConfiguration.manufacturer && deviceConfiguration.deviceName == selectedDeviceConfiguration.deviceName) {
-                const otherContractConfigs = deviceConfiguration.contractConfigurations.filter(
-                    contractConfiguration => contractConfiguration.duration != updatedDeviceConfiguration.contractConfigurations[0].duration
-                ).map(
-                    contractConfiguration => cloneContractConfiguration(contractConfiguration)
-                )
-                updatedDeviceConfiguration.contractConfigurations = updatedDeviceConfiguration.contractConfigurations.concat(
-                    otherContractConfigs
-                )
-                return updatedDeviceConfiguration
-            } else {
-                const clonedContractConfigurations: ContractConfigurationDto[] = deviceConfiguration.contractConfigurations.map(
-                    contractConfiguration => {
-                        return cloneContractConfiguration(contractConfiguration)
-                    }
-                )
-
-                return new DeviceConfigurationDto(
-                    deviceConfiguration.manufacturer,
-                    deviceConfiguration.deviceName,
-                    deviceConfiguration.tco,
-                    clonedContractConfigurations,
-                )
-            }
-        }
-    )
-
-    const clonedBenefitMatrix = new BenefitMatrixDto(
-        benefitMatrix.value.brand,
-        clonedPeriod,
-        benefitMatrix.value.portfolio,
-        benefitMatrix.value.tariffNames,
-        clonedDeviceConfigurations,
-    )
+    // Update clonedBenefitMatrix with updatedDeviceConfiguration 
+    const deviceConfigurationToUpdate: DeviceConfigurationDto = clonedBenefitMatrix.deviceConfigurations.find(deviceConfiguration => {
+        return deviceConfiguration.deviceName === selectedDeviceConfiguration.value.deviceName && deviceConfiguration.manufacturer === selectedDeviceConfiguration.value.manufacturer
+            && deviceConfiguration.tco === selectedDeviceConfiguration.value.tco
+    })
+    deviceConfigurationToUpdate.deviceName = updatedDeviceConfiguration.deviceName
+    deviceConfigurationToUpdate.manufacturer = updatedDeviceConfiguration.manufacturer
+    deviceConfigurationToUpdate.tco = updatedDeviceConfiguration.tco
+    const contractConfigurationToUpdate: ContractConfigurationDto = deviceConfigurationToUpdate?.contractConfigurations.find(contractConfiguration => {
+        return contractConfiguration.duration === selectedDeviceConfiguration.value.contractDuration
+    })
+    contractConfigurationToUpdate.duration = updatedDeviceConfiguration.contractDuration
+    const selectedUpfrontIndex = contractConfigurationToUpdate.upfronts.indexOf(selectedDeviceConfiguration.value.upfront)
+    contractConfigurationToUpdate.upfronts[selectedUpfrontIndex] = updatedDeviceConfiguration.upfront
+    contractConfigurationToUpdate.tariffConfigurations.forEach((tariffConfiguration, i) => {
+        const discounts = updatedDeviceConfiguration.discounts
+        tariffConfiguration.voucherName = updatedDeviceConfiguration.discounts[i].voucherName
+        tariffConfiguration.name = updatedDeviceConfiguration.discounts[i].tariffName
+        tariffConfiguration.discount = updatedDeviceConfiguration.discounts[i].discount
+        const selectedBundlePriceIndex = tariffConfiguration.bundlePrices.indexOf(selectedDeviceConfiguration.value.bundlePrices[i].bundlePrice)
+        tariffConfiguration.bundlePrices[selectedBundlePriceIndex] = updatedDeviceConfiguration.bundlePrices[i].bundlePrice
+    })
 
     updateBenefitMatrixOnServer(route.params.id, clonedBenefitMatrix)
-}
-
-function cloneContractConfiguration(contractConfiguration: ContractConfigurationDto): ContractConfigurationDto {
-
-    const clonedTariffConfigurations: TariffConfigurationDto[] =
-        contractConfiguration.tariffConfigurations.map(
-            tariffConfiguration => {
-                return new TariffConfigurationDto(
-                    tariffConfiguration.name,
-                    tariffConfiguration.discount,
-                    tariffConfiguration.voucherName,
-                    tariffConfiguration.bundlePrices
-                )
-            }
-        )
-
-    return new ContractConfigurationDto(
-        contractConfiguration.duration,
-        contractConfiguration.upfronts,
-        clonedTariffConfigurations,
-    )
-}
-
-function getDataPath(data: BenefitMatrixRowData) {
-    console.log('data path for' + JSON.stringify(data))
-    return ['24', '36']
 }
 
 </script>
@@ -276,7 +233,7 @@ function getDataPath(data: BenefitMatrixRowData) {
                 <div class="text-h6">{{ `${benefitMatrix.brand} ${benefitMatrix.portfolio}` }}</div>
                 <div class="text-h6" v-if="benefitMatrix.period">
                     {{ `${moment(benefitMatrix.period.from).format("D MMM")} -
-                    ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                     }}
                 </div>
                 <v-card-text>
@@ -289,15 +246,16 @@ function getDataPath(data: BenefitMatrixRowData) {
         <DeviceConfigurationDialog ref="dialog" @save="update" :deviceConfiguration="selectedDeviceConfiguration" />
 
         <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{ `<-
-        ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
-        ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}` }}</v-btn>
+                        ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
+                        ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}`
+        }}</v-btn>
                 <v-btn class="text-h6" v-if="benefitMatrix && benefitMatrix.period" disabled>
                     {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} -
-                    ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                     }}</v-btn>
                 <v-btn class="text-h6" v-if="nextBenefitMatrix && nextBenefitMatrix.period" @click="openNext">{{
-                `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
-                ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
+                        `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
+                                    ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
                 }}</v-btn>
 
                 <v-snackbar v-model="error">
