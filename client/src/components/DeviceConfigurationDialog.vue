@@ -14,10 +14,7 @@ const props = defineProps({
 
 const show = ref(false)
 
-function showDialog(benefitMatrixRowData: BenefitMatrixRowData) {
-    console.log(props.deviceConfiguration)
-    //TODO
-    console.assert(benefitMatrixRowData === props.deviceConfiguration, 'device configs not equal')
+function showDialog() {
     show.value = true
 }
 

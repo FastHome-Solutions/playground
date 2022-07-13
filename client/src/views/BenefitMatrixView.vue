@@ -174,7 +174,7 @@ function cellClicked(event) {
         if (action === 'edit') {
             console.log('edit')
             selectedDeviceConfiguration.value = event.data
-            dialog.value.showDialog(selectedDeviceConfiguration)
+            dialog.value.showDialog()
         }
     }
 }

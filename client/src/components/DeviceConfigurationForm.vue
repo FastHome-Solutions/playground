@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RowData } from '@/components/device-configuration.businessmodels'
-import { ref } from 'vue'
+import { cloneDeep } from '@apollo/client/utilities';
+import { ref, watch } from 'vue'
 import { BenefitMatrixRowData } from './benefit-matrix.businessmodel';
 
 const props = defineProps({
@@ -9,6 +10,7 @@ const props = defineProps({
         required: true,
     },
 })
+const clonedDeviceConfiguration = ref(cloneDeep(props.deviceConfiguration))
 
 const emit = defineEmits(['save', 'cancel'])
 
@@ -34,31 +36,35 @@ function onUpfrontChange(event) {
             <v-container>
                 <v-row>
                     <v-col cols="12" sm="6" md="6">
-                        <v-text-field label="Hersteller*" required v-model="deviceConfiguration.manufacturer">
+                        <v-text-field label="Hersteller*" required v-model="clonedDeviceConfiguration.manufacturer">
                         </v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="6">
-                        <v-text-field label="Gerät*" required v-model="deviceConfiguration.deviceName"></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="6">
-                        <v-text-field label="Anzahlung*" required v-model="deviceConfiguration.upfront" type="number" @change="onUpfrontChange">
+                        <v-text-field label="Gerät*" required v-model="clonedDeviceConfiguration.deviceName">
                         </v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="6">
-                        <v-text-field label="Rate*" required v-model="deviceConfiguration.rate" type="number">
+                        <v-text-field label="Anzahlung*" required v-model="clonedDeviceConfiguration.upfront"
+                            type="number" @change="onUpfrontChange">
                         </v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="6">
-                        <v-text-field label="TCO*" required v-model="deviceConfiguration.tco" type="number">
+                        <v-text-field label="Rate*" required v-model="clonedDeviceConfiguration.rate" type="number">
+                        </v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6" md="6">
+                        <v-text-field label="TCO*" required v-model="clonedDeviceConfiguration.tco" type="number">
                         </v-text-field>
                     </v-col>
                 </v-row>
                 <v-row>
-                    <v-col v-for="(discount, index) in deviceConfiguration.discounts" cols="12" sm="6" md="6" :key="index">
-                        <v-text-field v-bind:label="discount.tariffName + ` discount*`" required v-model="discount.discount"
-                            color="purple" type="number"></v-text-field>
+                    <v-col v-for="(discount, index) in clonedDeviceConfiguration.discounts" cols="12" sm="6" md="6"
+                        :key="index">
+                        <v-text-field v-bind:label="discount.tariffName + ` discount*`" required
+                            v-model="discount.discount" color="purple" type="number"></v-text-field>
                     </v-col>
-                    <v-col v-for="(bundlePrice, index) in deviceConfiguration.bundlePrices" cols="12" sm="6" md="6" :key="index">
+                    <v-col v-for="(bundlePrice, index) in clonedDeviceConfiguration.bundlePrices" cols="12" sm="6"
+                        md="6" :key="index">
                         <v-text-field v-bind:label="bundlePrice.tariffName + ` bundle price*`" required
                             v-model="bundlePrice.bundlePrice" color="blue" type="number">
                         </v-text-field>
