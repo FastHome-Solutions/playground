@@ -22,7 +22,7 @@ function cancel() {
 }
 
 function onUpfrontChange(event) {
-    props.deviceConfiguration.rate = (props.deviceConfiguration.tco - props.deviceConfiguration.upfront) / props.deviceConfiguration.contractDuration
+    clonedDeviceConfiguration.value.rate = (clonedDeviceConfiguration.value.tco - clonedDeviceConfiguration.value.upfront) / clonedDeviceConfiguration.value.contractDuration
 }
 </script>
 
