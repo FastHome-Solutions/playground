@@ -164,7 +164,7 @@ function updateData(id: String) {
 updateData(route.params.id)
 
 const dialog = ref(DeviceConfigurationDialog)
-let outdatedDeviceConfiguration: DeviceConfigurationDto
+let selectedDeviceConfiguration = ref({} as BenefitMatrixRowData)
 function cellClicked(event) {
     if (
         event.column.colId === 'edit' &&
@@ -173,8 +173,8 @@ function cellClicked(event) {
         let action = event.event.target.dataset.action
         if (action === 'edit') {
             console.log('edit')
-            outdatedDeviceConfiguration = event.data
-            dialog.value.showDialog(outdatedDeviceConfiguration)
+            selectedDeviceConfiguration.value = event.data
+            dialog.value.showDialog(selectedDeviceConfiguration)
         }
     }
 }
@@ -199,7 +199,7 @@ function update(updatedDeviceConfiguration: DeviceConfigurationDto) {
     )
     const clonedDeviceConfigurations: DeviceConfigurationDto[] = benefitMatrix.value.deviceConfigurations.map(
         deviceConfiguration => {
-            if (deviceConfiguration.manufacturer == outdatedDeviceConfiguration.manufacturer && deviceConfiguration.deviceName == outdatedDeviceConfiguration.deviceName) {
+            if (deviceConfiguration.manufacturer == selectedDeviceConfiguration.manufacturer && deviceConfiguration.deviceName == selectedDeviceConfiguration.deviceName) {
                 const otherContractConfigs = deviceConfiguration.contractConfigurations.filter(
                     contractConfiguration => contractConfiguration.duration != updatedDeviceConfiguration.contractConfigurations[0].duration
                 ).map(
@@ -286,7 +286,7 @@ function getDataPath(data: BenefitMatrixRowData) {
             </v-card>
         </div>
 
-        <DeviceConfigurationDialog ref="dialog" @save="update" />
+        <DeviceConfigurationDialog ref="dialog" @save="update" :deviceConfiguration="selectedDeviceConfiguration" />
 
         <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{ `<-
         ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
