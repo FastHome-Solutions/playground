@@ -29,7 +29,7 @@ export function uploadFile(chosenFile: Blob): Promise<[][]> {
     )
 }
 
-export function parseMetadataSuggestions(filename: String, spreadsheet: [][]): SpreadsheetMetadata {
+export function parseMetadataSuggestions(filename: String, spreadsheet: [][]): BenefitMatrixMetadata {
     const startYear = (filename.length > 4) ? filename.substring(0, 4) : null
 
     var from = ''
@@ -61,11 +61,11 @@ export function parseMetadataSuggestions(filename: String, spreadsheet: [][]): S
     console.log('startDate ' + from)
     console.log('endDate ' + till)
 
-    const metadata = new SpreadsheetMetadata(new Date(from), new Date(till), 'D76', 'N106', 'Online')
+    const metadata = new BenefitMatrixMetadata(new Date(from), new Date(till), 'D76', 'N106', 'Online')
     return metadata
 }
 
-export function parseSpreadsheet(metadata: SpreadsheetMetadata, spreadsheet: [[]]): BenefitMatrixInputType {
+export function parseSpreadsheet(metadata: BenefitMatrixMetadata, spreadsheet: [[]]): BenefitMatrixInputType {
     const headerRowNumber = removeChars(metadata.rangeStart) - 1
     const lastContentRowNumber = metadata.rangeEnd.replace(/[^0-9]/gi, '') - 1
     const firstContentColumn = excelColumnToIndex(metadata.rangeStart) - 1
@@ -183,7 +183,7 @@ function removeLineBreaks(stringWithBreaks: string): string {
     return stringWithBreaks.replace(/(\r\n|\n|\r)/gm, '')
 }
 
-export class SpreadsheetMetadata {
+export class BenefitMatrixMetadata {
     from: Date;
     till: Date;
     rangeStart: string;

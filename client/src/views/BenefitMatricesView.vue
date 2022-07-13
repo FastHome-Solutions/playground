@@ -7,7 +7,7 @@ import router from '@/router'
 import MetadataDialog from '@/components/MetadataDialog.vue'
 import { ref } from 'vue'
 import { file } from '@babel/types'
-import { uploadFile } from '@/utils/parsing.utils'
+import { BenefitMatrixMetadata, parseMetadataSuggestions, parseSpreadsheet, uploadFile } from '@/utils/parsing.utils'
 
 const { benefitMatrix, benefitMatrices, loading, error } = storeToRefs(useBenefitMatrixStore())
 const { fetchBenefitMatricesFromServer, uploadSpreadsheetToServer } = useBenefitMatrixStore()
@@ -67,13 +67,18 @@ fetchBenefitMatricesFromServer()
 
 // File Upload
 const dialog = ref(null)
+const metadata = ref({} as BenefitMatrixMetadata)
+let spreadsheet = [[]]
 async function onFileUpload(event) {
-  const spreadsheet = await uploadFile(event.target.files[0])
   const fileName = event.target.files[0].name
-  dialog.value.showDialog(fileName, spreadsheet)
+  spreadsheet = await uploadFile(event.target.files[0])
+  metadata.value = parseMetadataSuggestions(fileName, spreadsheet)
+
+  dialog.value.showDialog()
 }
 
-async function uploadBenefitMatrix(parsedBenefitMatrix: BenefitMatrixDto) {
+async function uploadBenefitMatrix(metadata: BenefitMatrixMetadata) {
+  const parsedBenefitMatrix = parseSpreadsheet(metadata, spreadsheet)
   await uploadSpreadsheetToServer(parsedBenefitMatrix)
   router.push({ name: 'benefit-matrix', params: { id: benefitMatrix.value._id } })
 }
@@ -93,7 +98,7 @@ async function uploadBenefitMatrix(parsedBenefitMatrix: BenefitMatrixDto) {
       </v-file-input>
     </v-card-title>
 
-    <MetadataDialog ref="dialog" @parsed-spreadsheet='uploadBenefitMatrix' />
+    <MetadataDialog ref="dialog" @confirm='uploadBenefitMatrix' :metadata="metadata" />
 
     <p v-if="loading">Loading posts...</p>
     <p v-if="error">{{ error.message }}</p>
