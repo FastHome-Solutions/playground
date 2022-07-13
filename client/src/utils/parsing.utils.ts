@@ -1,5 +1,5 @@
 import { read, utils } from "xlsx"
-import { BenefitMatrixDto, Period, ContractConfigurationDto, TariffConfigurationDto, DeviceConfigurationDto } from "@/dto/benefit-matrix.dto"
+import { BenefitMatrixInputType, PeriodInputType, ContractConfigurationInputType, TariffConfigurationInputType, DeviceConfigurationInputType } from "@/dto/benefit-matrix.dto"
 
 export function uploadFile(chosenFile: Blob): Promise<[][]> {
     // var chosenFile = event.target.files[0];
@@ -65,7 +65,7 @@ export function parseMetadataSuggestions(filename: String, spreadsheet: [][]): S
     return metadata
 }
 
-export function parseSpreadsheet(metadata: SpreadsheetMetadata, spreadsheet: [[]]): BenefitMatrixDto {
+export function parseSpreadsheet(metadata: SpreadsheetMetadata, spreadsheet: [[]]): BenefitMatrixInputType {
     const headerRowNumber = removeChars(metadata.rangeStart) - 1
     const lastContentRowNumber = metadata.rangeEnd.replace(/[^0-9]/gi, '') - 1
     const firstContentColumn = excelColumnToIndex(metadata.rangeStart) - 1
@@ -101,21 +101,21 @@ export function parseSpreadsheet(metadata: SpreadsheetMetadata, spreadsheet: [[]
         tariffNames.push(tariffName)
     }
 
-    const period = new Period(
+    const period = new PeriodInputType(
         metadata.from,
         metadata.till,
     )
 
-    const deviceConfigurations: DeviceConfigurationDto[] = []
+    const deviceConfigurations: DeviceConfigurationInputType[] = []
 
-    var lastDeviceConfig: DeviceConfigurationDto
+    var lastDeviceConfig: DeviceConfigurationInputType
     for (let i = headerRowNumber + 1; i <= lastContentRowNumber; i++) {
         const row = spreadsheet[i]
-        const contractConfigurations: ContractConfigurationDto[] = []
-        const tariffConfigurations: TariffConfigurationDto[] = []
+        const contractConfigurations: ContractConfigurationInputType[] = []
+        const tariffConfigurations: TariffConfigurationInputType[] = []
         for (let i = 0; i <= numberOfTariffs; i++) {
             tariffConfigurations.push(
-                new TariffConfigurationDto(
+                new TariffConfigurationInputType(
                     tariffNames[i], // tariffName
                     row[firstContentColumn + firstDiscountIndex + i], // discount
                     row[firstContentColumn + firstDiscountIndex + i] + '', // voucherName. For blau, currently equals to discount
@@ -130,7 +130,7 @@ export function parseSpreadsheet(metadata: SpreadsheetMetadata, spreadsheet: [[]
         }
 
         contractConfigurations.push(
-            new ContractConfigurationDto(
+            new ContractConfigurationInputType(
                 contractDuration,
                 [row[firstContentColumn + upfrontIndex]], // upfronts
                 tariffConfigurations,
@@ -140,7 +140,7 @@ export function parseSpreadsheet(metadata: SpreadsheetMetadata, spreadsheet: [[]
         if (lastDeviceConfig && lastDeviceConfig.manufacturer == row[firstContentColumn] && lastDeviceConfig.deviceName == row[firstContentColumn + 1]) {
             lastDeviceConfig.contractConfigurations = lastDeviceConfig.contractConfigurations.concat(contractConfigurations)
         } else {
-            const deviceConfiguration = new DeviceConfigurationDto(
+            const deviceConfiguration = new DeviceConfigurationInputType(
                 row[firstContentColumn], // manufacturer
                 row[firstContentColumn + 1], // device name
                 row[firstContentColumn + tcoIndex], // TCO
@@ -151,7 +151,7 @@ export function parseSpreadsheet(metadata: SpreadsheetMetadata, spreadsheet: [[]
         }
     }
 
-    const benefitMatrixDto = new BenefitMatrixDto(
+    const benefitMatrixDto = new BenefitMatrixInputType(
         'Blau', // TODO
         period,
         metadata.portfolio,
@@ -175,21 +175,21 @@ function excelColumnToIndex(columnName: String): Number {
     return columnIndex
 }
 
-function removeChars(stringWithChars: String): number {
+function removeChars(stringWithChars: string): number {
     return parseInt(stringWithChars.replace(/[^0-9]/gi, ''))
 }
 
-function removeLineBreaks(stringWithBreaks: String): String {
+function removeLineBreaks(stringWithBreaks: string): string {
     return stringWithBreaks.replace(/(\r\n|\n|\r)/gm, '')
 }
 
 export class SpreadsheetMetadata {
     from: Date;
     till: Date;
-    rangeStart: String;
-    rangeEnd: String;
-    portfolio: String;
-    constructor(from: Date, till: Date, rangeStart: String, rangeEnd: String, portfolio: String) {
+    rangeStart: string;
+    rangeEnd: string;
+    portfolio: string;
+    constructor(from: Date, till: Date, rangeStart: string, rangeEnd: string, portfolio: string) {
         this.from = from
         this.till = till
         this.rangeStart = rangeStart

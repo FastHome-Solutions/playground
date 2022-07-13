@@ -9,7 +9,7 @@ import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 import { ref, watch } from 'vue'
 import router from '@/router'
 import DeviceConfigurationDialog from '@/components/DeviceConfigurationDialog.vue'
-import type { ContractConfigurationDto, DeviceConfigurationDto } from '@/dto/benefit-matrix.dto'
+import type { ContractConfigurationInputType, DeviceConfigurationInputType } from '@/dto/benefit-matrix.dto'
 import { BenefitMatrixRowData, benefitMatrixToRowData } from '@/components/benefit-matrix.businessmodel'
 import { cloneDeep } from '@apollo/client/utilities'
 
@@ -191,18 +191,16 @@ function openNext() {
 function update(updatedDeviceConfiguration: BenefitMatrixRowData) {
     // Cloning because Apollo return values are immutable by design
     const clonedBenefitMatrix = cloneDeep(benefitMatrix.value)
-    // Need to remove _id in order for GraphQL to accept the data
-    delete clonedBenefitMatrix._id
 
     // Update clonedBenefitMatrix with updatedDeviceConfiguration 
-    const deviceConfigurationToUpdate: DeviceConfigurationDto = clonedBenefitMatrix.deviceConfigurations.find(deviceConfiguration => {
+    const deviceConfigurationToUpdate: DeviceConfigurationInputType = clonedBenefitMatrix.deviceConfigurations.find(deviceConfiguration => {
         return deviceConfiguration.deviceName === selectedDeviceConfiguration.value.deviceName && deviceConfiguration.manufacturer === selectedDeviceConfiguration.value.manufacturer
             && deviceConfiguration.tco === selectedDeviceConfiguration.value.tco
     })
     deviceConfigurationToUpdate.deviceName = updatedDeviceConfiguration.deviceName
     deviceConfigurationToUpdate.manufacturer = updatedDeviceConfiguration.manufacturer
     deviceConfigurationToUpdate.tco = updatedDeviceConfiguration.tco
-    const contractConfigurationToUpdate: ContractConfigurationDto = deviceConfigurationToUpdate?.contractConfigurations.find(contractConfiguration => {
+    const contractConfigurationToUpdate: ContractConfigurationInputType = deviceConfigurationToUpdate?.contractConfigurations.find(contractConfiguration => {
         return contractConfiguration.duration === selectedDeviceConfiguration.value.contractDuration
     })
     contractConfigurationToUpdate.duration = updatedDeviceConfiguration.contractDuration
@@ -217,7 +215,7 @@ function update(updatedDeviceConfiguration: BenefitMatrixRowData) {
         tariffConfiguration.bundlePrices[selectedBundlePriceIndex] = updatedDeviceConfiguration.bundlePrices[i].bundlePrice
     })
 
-    updateBenefitMatrixOnServer(route.params.id, clonedBenefitMatrix)
+    updateBenefitMatrixOnServer(clonedBenefitMatrix)
 }
 
 </script>

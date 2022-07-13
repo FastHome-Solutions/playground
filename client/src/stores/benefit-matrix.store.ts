@@ -1,14 +1,14 @@
 import { defineStore } from "pinia"
 import gql from "graphql-tag"
 import { apolloClient } from "@/graphql"
-import type { BenefitMatrixDto } from "@/dto/benefit-matrix.dto"
+import type { BenefitMatrixInputType } from "@/dto/benefit-matrix.dto"
 
 export const useBenefitMatrixStore = defineStore('BenefitStore', {
   state: () => ({
-    benefitMatrix: {} as BenefitMatrixDto,
-    previousBenefitMatrix: {} as BenefitMatrixDto,
-    nextBenefitMatrix: {} as BenefitMatrixDto,
-    benefitMatrices: [] as BenefitMatrixDto[],
+    benefitMatrix: {} as BenefitMatrixInputType,
+    previousBenefitMatrix: {} as BenefitMatrixInputType,
+    nextBenefitMatrix: {} as BenefitMatrixInputType,
+    benefitMatrices: [] as BenefitMatrixInputType[],
     loading: false,
     error: null,
   }),
@@ -40,7 +40,7 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
         this.loading = false;
       });
     },
-    fetchBenefitMatrixFromServer(bmId: String): Promise {
+    fetchBenefitMatrixFromServer(bmId: String): Promise<void> {
       this.loading = true;
       return apolloClient.query({
         query: gql`query BenefitMatrix($id:String!) {
@@ -86,7 +86,7 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
         }
         `,
         variables: {
-          id: bmId
+          id: bmId,
         },
       })
       .then((result) => {
@@ -102,18 +102,18 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
         this.loading = false
       });
     },
-    uploadSpreadsheetToServer(benefitMatrixDto: BenefitMatrixDto): Promise {
+    uploadSpreadsheetToServer(benefitMatrixDto: BenefitMatrixInputType): Promise<void> {
       this.benefitMatrix = benefitMatrixDto
 
       this.loading = true;
       return apolloClient.mutate({
-        mutation: gql`mutation CreateBenefitMatrix($benefitMatrix: CreateBenefitMatrixDto!) {
+        mutation: gql`mutation CreateBenefitMatrix($benefitMatrix: BenefitMatrixInputType!) {
             createBenefitMatrix(benefitMatrix: $benefitMatrix) {
               _id
             }
           }`,
         variables: {
-          benefitMatrix: benefitMatrixDto
+          benefitMatrix: benefitMatrixDto,
         }
       })
       .then((result) => {
@@ -127,11 +127,11 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
         this.loading = false;
       })
     },
-    updateBenefitMatrixOnServer(bmId: String, benefitMatrixDto: BenefitMatrixDto): Promise {
+    updateBenefitMatrixOnServer(benefitMatrixDto: BenefitMatrixInputType): Promise<void> {
     this.loading = true;
     return apolloClient.mutate({
-      mutation: gql`mutation UpdateBenefitMatrix($id: String! $benefitMatrix: CreateBenefitMatrixDto!) {
-        updateBenefitMatrix(id: $id, benefitMatrix: $benefitMatrix) {
+      mutation: gql`mutation UpdateBenefitMatrix($benefitMatrix: BenefitMatrixInputType!) {
+        updateBenefitMatrix(benefitMatrix: $benefitMatrix) {
           _id
           brand
           period {
@@ -158,8 +158,7 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
         }
       }`,
       variables: {
-        id: bmId,
-        benefitMatrix: benefitMatrixDto
+        benefitMatrix: benefitMatrixDto,
       },
     })
       .then((result) => {

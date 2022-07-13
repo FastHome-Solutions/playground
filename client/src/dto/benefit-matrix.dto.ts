@@ -1,4 +1,4 @@
-export class Period {
+export class PeriodInputType {
     from: Date
     till: Date
 
@@ -8,20 +8,20 @@ export class Period {
     }
 }
 
-export class BenefitMatrixDto {
+export class BenefitMatrixInputType {
     _id: String
     brand: String
-    period: Period
+    period: PeriodInputType
     portfolio: String
     tariffNames: String[]
-    deviceConfigurations: DeviceConfigurationDto[]
+    deviceConfigurations: DeviceConfigurationInputType[]
 
     constructor(
         brand: String,
-        period: Period,
+        period: PeriodInputType,
         portfolio: String,
         tariffNames: String[],
-        deviceConfigurations: DeviceConfigurationDto[],
+        deviceConfigurations: DeviceConfigurationInputType[],
     ) {
         this.brand = brand
         this.period = period
@@ -31,7 +31,7 @@ export class BenefitMatrixDto {
     }
 }
 
-export class DeviceConfigurationDto {
+export class DeviceConfigurationInputType {
     manufacturer: String
     deviceName: String
     tco: Number
@@ -50,15 +50,15 @@ export class DeviceConfigurationDto {
     }
 }
 
-export class ContractConfigurationDto {
+export class ContractConfigurationInputType {
     duration: Number
     upfronts: Number[]
-    tariffConfigurations: TariffConfigurationDto[]
+    tariffConfigurations: TariffConfigurationInputType[]
 
     constructor(
         duration: Number,
         upfronts: Number[],
-        tariffConfigurations: TariffConfigurationDto[]
+        tariffConfigurations: TariffConfigurationInputType[]
     ) {
         this.duration = duration
         this.upfronts = upfronts
@@ -66,7 +66,7 @@ export class ContractConfigurationDto {
     }
 }
 
-export class TariffConfigurationDto {
+export class TariffConfigurationInputType {
     name: String
     discount: Number
     voucherName: String

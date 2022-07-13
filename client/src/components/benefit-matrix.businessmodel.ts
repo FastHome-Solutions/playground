@@ -1,4 +1,4 @@
-import type { BenefitMatrixDto } from '@/dto/benefit-matrix.dto'
+import type { BenefitMatrixInputType } from '@/dto/benefit-matrix.dto'
 
 /**
  * Only the data needed to represent one row of a BenefitMatrixView table
@@ -58,7 +58,7 @@ export class BenefitMatrixBundlePrice {
     }
 }
 
-export function benefitMatrixToRowData(benefitMatrix: BenefitMatrixDto): BenefitMatrixRowData[] {
+export function benefitMatrixToRowData(benefitMatrix: BenefitMatrixInputType): BenefitMatrixRowData[] {
     const rows: BenefitMatrixRowData[] = []
 
     benefitMatrix.deviceConfigurations.forEach(
