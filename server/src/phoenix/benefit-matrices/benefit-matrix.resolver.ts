@@ -3,7 +3,7 @@ import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { BanefitMatricesService } from "./benefit-matrices.service";
 import { BenefitMatrix } from "./schemas/benefit-matrix.schema";
 import { BenefitMatricesArgs } from "./dto/benefit-matrices.args";
-import { CreateBenefitMatrixDto } from "./dto/create-benefit-matrix.dto";
+import { BenefitMatrixInputType } from "./dto/create-benefit-matrix.dto";
 
 @Resolver(of => BenefitMatrix)
 export class BenefitMatrixResolver {
@@ -47,12 +47,12 @@ export class BenefitMatrixResolver {
   }
 
   @Mutation(returns => BenefitMatrix)
-  async createBenefitMatrix(@Args('benefitMatrix') benefitMatrix: CreateBenefitMatrixDto) {
+  async createBenefitMatrix(@Args('benefitMatrix') benefitMatrix: BenefitMatrixInputType) {
       return await this.benefitMatricesService.create(benefitMatrix);
   }
 
   @Mutation(returns => BenefitMatrix)
-  async updateBenefitMatrix(@Args('id') id: String, @Args('benefitMatrix') benefitMatrix: CreateBenefitMatrixDto) {
-    return await this.benefitMatricesService.update(id, benefitMatrix);
+  async updateBenefitMatrix(@Args('benefitMatrix') benefitMatrix: BenefitMatrixInputType) {
+    return await this.benefitMatricesService.update(benefitMatrix);
   }
 } 

@@ -2,7 +2,7 @@ import { Field, InputType } from "@nestjs/graphql";
 
 
 @InputType()
-class ValidityPeriod {
+class ValidityPeriodInputType {
 
     @Field(() => Date)
     from: Date
@@ -12,13 +12,16 @@ class ValidityPeriod {
 }
 
 @InputType()
-export class CreateBenefitMatrixDto {
+export class BenefitMatrixInputType {
+
+    @Field(() => String, { nullable: true })
+    _id: String
 
     @Field()
     brand: String
 
     @Field()
-    period: ValidityPeriod
+    period: ValidityPeriodInputType
 
     @Field()
     portfolio: String
@@ -26,13 +29,13 @@ export class CreateBenefitMatrixDto {
     @Field(() => [String])
     tariffNames: String[]
 
-    @Field(() => [DeviceConfigurationDto])
-    deviceConfigurations: DeviceConfigurationDto[]
+    @Field(() => [DeviceConfigurationInputType])
+    deviceConfigurations: DeviceConfigurationInputType[]
 }
 
 
 @InputType()
-class DeviceConfigurationDto {
+class DeviceConfigurationInputType {
 
     @Field()
     manufacturer: String
@@ -43,24 +46,24 @@ class DeviceConfigurationDto {
     @Field()
     tco: Number
 
-    @Field(() => [ContractConfigurationDto])
-    contractConfigurations: ContractConfigurationDto[]
+    @Field(() => [ContractConfigurationInputType])
+    contractConfigurations: ContractConfigurationInputType[]
 }
 
 @InputType()
-class ContractConfigurationDto {
+class ContractConfigurationInputType {
     @Field()
     duration: Number
 
     @Field(() => [Number])
     upfronts: Number[]
 
-    @Field(() => [TariffConfigurationDto])
-    tariffConfigurations: TariffConfigurationDto[]
+    @Field(() => [TariffConfigurationInputType])
+    tariffConfigurations: TariffConfigurationInputType[]
 }
 
 @InputType()
-class TariffConfigurationDto {
+class TariffConfigurationInputType {
     @Field()
     name: String
 
