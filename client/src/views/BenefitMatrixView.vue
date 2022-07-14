@@ -164,37 +164,20 @@ function setColDefs() {
         headerClass: 'text-left',
         field: 'edit',
         cellClass: 'text-left',
-        width: 80,
-        minWidth: 80,
-        maxWidth: 120,
+        width: 180,
+        minWidth: 160,
+        maxWidth: 200,
         type: 'rightAligned',
         cellRenderer: editCellRenderer,
-        sortable: false,
-        filter: false
-    })
-    columnDefs.value.push({
-        headerName: 'Clone',
-        headerClass: 'text-left',
-        field: 'clone',
-        cellClass: 'text-left',
-        width: 90,
-        minWidth: 80,
-        maxWidth: 120,
-        type: 'rightAligned',
-        cellRenderer: cloneCellRenderer,
         sortable: false,
         filter: false
     })
 
     function editCellRenderer(params) {
         let eGui = document.createElement('div');
-        eGui.innerHTML = `<button data-action="edit" >Edit</button>`
-        return eGui;
-    }
-
-    function cloneCellRenderer(params) {
-        let eGui = document.createElement('div');
-        eGui.innerHTML = `<button data-action="clone" >Clone</button>`
+        eGui.innerHTML = `<button data-action="edit" >Edit</button> 
+        <button data-action="clone" style="margin-left:10px;">Clone</button>
+        <button data-action="delete" style="margin-left:10px;">Delete</button>`
         return eGui;
     }
 }
@@ -221,17 +204,14 @@ function cellClicked(event) {
             selectedDeviceConfiguration.value = event.data
             addingDeviceConfiguration.value = false
             dialog.value.showDialog()
-        }
-    } else if (
-        event.column.colId === 'clone' &&
-        event.event.target.dataset.action
-    ) {
-        let action = event.event.target.dataset.action
-        if (action === 'clone') {
+        } else if (action === 'clone') {
             console.log('clone')
             selectedDeviceConfiguration.value = event.data
             addingDeviceConfiguration.value = true
             dialog.value.showDialog()
+        } else if (action === 'delete') {
+            console.log('delete')
+            deleteDeviceConfiguration(selectedDeviceConfiguration.value = event.data)
         }
     }
 }
@@ -252,6 +232,40 @@ function update(add: boolean, updatedDeviceConfiguration: BenefitMatrixRowData) 
     } else {
         benefitMatrix.value = editDeviceConfiguration(updatedDeviceConfiguration)
     }
+}
+
+function deleteDeviceConfiguration(deviceConfigurationToDelete: BenefitMatrixRowData) {
+    editMode.value = true // from here on in edit mode
+
+    // Cloning because Apollo return values are immutable by design
+    const clonedBenefitMatrix = cloneDeep(benefitMatrix.value)
+    const deviceConfiguration: DeviceConfigurationInputType = clonedBenefitMatrix.deviceConfigurations.find(deviceConfiguration => {
+        return deviceConfiguration.deviceName === deviceConfigurationToDelete.deviceName && deviceConfiguration.manufacturer === deviceConfigurationToDelete.manufacturer
+            && deviceConfiguration.tco === deviceConfigurationToDelete.tco
+    })
+    const contractConfiguration: ContractConfigurationInputType = deviceConfiguration?.contractConfigurations.find(contractConfiguration => {
+        return contractConfiguration.duration === deviceConfigurationToDelete.contractDuration
+    })
+
+    const upfrontIndex = contractConfiguration.upfronts.indexOf(deviceConfigurationToDelete.upfront)
+    if (upfrontIndex !== -1) { // row contained additional upfronts and bundle prices, delete them
+        contractConfiguration.upfronts.splice(upfrontIndex, 1)
+        contractConfiguration.tariffConfigurations.forEach(tariff => {
+            tariff.bundlePrices.splice(upfrontIndex, 1)
+        })
+    } else { // delete contract configuration
+        deviceConfiguration.contractConfigurations = deviceConfiguration?.contractConfigurations.filter(contractConfiguration => {
+            return contractConfiguration.duration === deviceConfigurationToDelete.contractDuration
+        })
+    }
+
+    if (deviceConfiguration.contractConfigurations.length == 0) { // no more contracts => delete device configuration
+        clonedBenefitMatrix.deviceConfigurations = clonedBenefitMatrix.deviceConfigurations.filter(deviceConfiguration => {
+            return deviceConfiguration.deviceName === deviceConfigurationToDelete.deviceName && deviceConfiguration.manufacturer === deviceConfigurationToDelete.manufacturer
+                && deviceConfiguration.tco === deviceConfigurationToDelete.tco
+        })
+    }
+    benefitMatrix.value = clonedBenefitMatrix
 }
 
 function addDeviceConfiguration(updatedDeviceConfiguration: BenefitMatrixRowData): BenefitMatrixInputType {
@@ -395,9 +409,9 @@ function save() {
             })
     } else {
         updateBenefitMatrixOnServer(benefitMatrix.value)
-        .then(() => {
-            editMode.value = false
-        })
+            .then(() => {
+                editMode.value = false
+            })
     }
 }
 
@@ -416,9 +430,9 @@ function add() {
             0
         ))
     })
-    selectedDeviceConfiguration.value = new BenefitMatrixRowData('', '', 24, 0, 0 , 0, discounts, bundlePrices)
+    selectedDeviceConfiguration.value = new BenefitMatrixRowData('', '', 24, 0, 0, 0, discounts, bundlePrices)
     addingDeviceConfiguration.value = true
-    dialog.value.showDialog() 
+    dialog.value.showDialog()
 }
 
 </script>
