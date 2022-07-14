@@ -31,6 +31,7 @@ onBeforeRouteUpdate(async (to, from) => {
 const columnDefs = ref(null)
 
 const editMode = ref(route.params.id === undefined)
+let editingNewBenefitMatrix = editMode.value
 const uploadMode = ref(editMode.value && !benefitMatrix.value._id)
 if (uploadMode.value) {
     setColDefs()
@@ -383,13 +384,21 @@ function cancel() {
 }
 
 function save() {
-    uploadSpreadsheetToServer(benefitMatrix.value)
+    if (editingNewBenefitMatrix) {
+        uploadSpreadsheetToServer(benefitMatrix.value)
+            .then(() => {
+                editMode.value = false
+                uploadMode.value = false
+                editingNewBenefitMatrix = false
+                router.push({ name: 'benefit-matrix', params: { id: benefitMatrix.value._id } })
+                updateData(benefitMatrix.value._id)
+            })
+    } else {
+        updateBenefitMatrixOnServer(benefitMatrix.value)
         .then(() => {
             editMode.value = false
-            uploadMode.value = false
-            router.push({ name: 'benefit-matrix', params: { id: benefitMatrix.value._id } })
-            updateData(benefitMatrix.value._id)
         })
+    }
 }
 
 function add() {
