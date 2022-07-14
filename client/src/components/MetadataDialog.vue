@@ -5,6 +5,10 @@ import { ref } from 'vue'
 import { BenefitMatrixMetadata } from '@/utils/parsing.utils';
 
 const props = defineProps({
+    addTariffsEnabled: {
+        type: Boolean,
+        required: true
+    },
     metadata: {
         type: BenefitMatrixMetadata,
         required: true,
@@ -29,6 +33,6 @@ function confirm(metadata: BenefitMatrixMetadata) {
 
 <template>
     <v-dialog v-model="show">
-        <MetadataForm :metadata="metadata" @confirm="confirm"></MetadataForm>
+        <MetadataForm :addTariffsEnabled="addTariffsEnabled" :metadata="metadata" @confirm="confirm"></MetadataForm>
     </v-dialog>
 </template>

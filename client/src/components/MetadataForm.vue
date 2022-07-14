@@ -1,12 +1,16 @@
 BenefitMatrixMetadata<script setup lang="ts">
 import moment from 'moment'
-import { BenefitMatrixMetadata, SpreadsheetMetadata } from '@/utils/parsing.utils'
+import { BenefitMatrixMetadata } from '@/utils/parsing.utils'
 import { ref } from 'vue'
 
 const props = defineProps({
+    addTariffsEnabled: {
+        type: Boolean,
+        required: true
+    },
     metadata: {
         type: BenefitMatrixMetadata,
-        required: false,
+        required: true,
     },
 })
 
@@ -14,17 +18,17 @@ const emit = defineEmits(['confirm'])
 
 const dateFormat = 'DD.MM.YYYY HH:mm'
 
-const spreadsheetMetadataRequired = props.metadata instanceof SpreadsheetMetadata
 const from = ref(moment(props.metadata?.from).format(dateFormat))
 const till = ref(moment(props.metadata?.till).format(dateFormat))
 const brand = ref(props.metadata?.brand)
-const portfolio = ref(props.metadata?.portfolio) 
+const portfolio = ref(props.metadata?.portfolio)
 const rangeStart = ref('')
 const rangeEnd = ref('')
+const spreadsheetMetadataRequired = props.metadata.rangeStart !== undefined && props.metadata.rangeEnd !== undefined
 if (spreadsheetMetadataRequired) {
     rangeStart.value = props.metadata?.rangeStart
     rangeEnd.value = props.metadata?.rangeEnd
-}
+} 
 
 const portfolioItems = ['Online', 'Offline']
 const brandItems = ['Blau', 'O2']
@@ -41,10 +45,15 @@ const portfolioRules = [
     v => (v) || 'Please select a portfolio.'
 ]
 
+const tariffNames = ref([] as {}[]) 
 async function confirm() {
-    const metadata = spreadsheetMetadataRequired ? new SpreadsheetMetadata(moment(from.value, dateFormat).toDate(), moment(till.value, dateFormat).toDate(), brand.value, portfolio.value, rangeStart.value, rangeEnd.value) 
-    : new BenefitMatrixMetadata(moment(from.value, dateFormat).toDate(), moment(till.value, dateFormat).toDate(), brand.value, portfolio.value)
+    const tariffs = tariffNames.value.map(tariffNameWrapper => tariffNameWrapper.tariffName)
+    const metadata = new BenefitMatrixMetadata(moment(from.value, dateFormat).toDate(), moment(till.value, dateFormat).toDate(), brand.value, portfolio.value, tariffs, rangeStart.value, rangeEnd.value)
     emit('confirm', metadata)
+}
+
+function addNewTariff() {
+    tariffNames.value.push({ tariffName: '' }) // Plane values can't be used as models by vue
 }
 
 </script>
@@ -67,11 +76,11 @@ async function confirm() {
                             <v-text-field label="To*" required v-model="till" :rules="dateRules"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6">
-                            <v-select :items="portfolioItems" label="Portfolios*" required multiple
-                                hint="Multiple selections possible" persistent-hint v-model="portfolio"></v-select>
+                            <v-select :items="portfolioItems" label="Portfolios*" required v-model="portfolio"></v-select>
                         </v-col>
                         <v-col cols="12" sm="6">
-                            <v-select :items="brandItems" label="Brand*" required persistent-hint v-model="brand"></v-select>
+                            <v-select :items="brandItems" label="Brand*" required persistent-hint v-model="brand">
+                            </v-select>
                         </v-col>
                         <v-col cols="12" sm="6" md="6" v-if="rangeStart">
                             <v-text-field label="Range start*" required v-model="rangeStart" :rules="rangeRules">
@@ -80,6 +89,16 @@ async function confirm() {
                         <v-col cols="12" sm="6" md="6" v-if="rangeEnd">
                             <v-text-field label="Range end*" required v-model="rangeEnd" :rules="rangeRules">
                             </v-text-field>
+                        </v-col>
+                        <v-col v-for="(tariffName, index) in tariffNames" :key="index" cols="12" sm="6" md="6">
+                            <v-text-field v-bind:label="'Tariff name*'" required v-model="tariffName.tariffName"
+                                type="text">
+                            </v-text-field>
+                        </v-col>
+                    </v-row>
+                    <v-row v-if="addTariffsEnabled">
+                        <v-col>
+                            <v-btn @click="addNewTariff">Add new tariff</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>

@@ -7,7 +7,7 @@ import router from '@/router'
 import MetadataDialog from '@/components/MetadataDialog.vue'
 import { ref } from 'vue'
 import { file } from '@babel/types'
-import { BenefitMatrixMetadata, parseMetadataSuggestions, parseSpreadsheet, SpreadsheetMetadata, uploadFile } from '@/utils/parsing.utils'
+import { BenefitMatrixMetadata, parseMetadataSuggestions, parseSpreadsheet, uploadFile } from '@/utils/parsing.utils'
 import { PeriodInputType, type BenefitMatrixInputType } from '@/dto/benefit-matrix.dto'
 import { cloneDeep } from '@apollo/client/utilities/common/cloneDeep'
 
@@ -97,7 +97,7 @@ function cellClicked(event) {
 
 fetchBenefitMatricesFromServer()
 
-// File Upload
+
 const dialog = ref(null)
 const metadata = ref({} as BenefitMatrixMetadata)
 
@@ -105,21 +105,28 @@ const metadata = ref({} as BenefitMatrixMetadata)
 function onCloneBenefitMatrix(benefitMatrix: BenefitMatrixInputType) {
   editBenefitMatrix(cloneDeep(benefitMatrix))
   metadata.value = new BenefitMatrixMetadata(benefitMatrix.period.from, benefitMatrix.period.till, benefitMatrix.brand, benefitMatrix.portfolio)
-  
+  addTariffsEnabled.value = false
   dialog.value.showDialog()
 }
 
+// File upload
 let spreadsheet = [[]]
-async function onFileUpload(event) {
+async function onUploadBenefitMatrix(event) {
   const fileName = event.target.files[0].name
   spreadsheet = await uploadFile(event.target.files[0])
   metadata.value = parseMetadataSuggestions(fileName, spreadsheet)
-  
+  addTariffsEnabled.value = false
+  dialog.value.showDialog()
+}
+
+const addTariffsEnabled = ref(false)
+function onAddBenefitMatrix() {
+  addTariffsEnabled.value = true
   dialog.value.showDialog()
 }
 
 async function addMetadataToBenefitMatrix(metadata: BenefitMatrixMetadata) {
-  if(metadata instanceof SpreadsheetMetadata) {
+  if (metadata.rangeStart && metadata.rangeEnd) {
     const parsedBenefitMatrix = parseSpreadsheet(metadata, spreadsheet)
     editBenefitMatrix(parsedBenefitMatrix)
   } else {
@@ -130,6 +137,9 @@ async function addMetadataToBenefitMatrix(metadata: BenefitMatrixMetadata) {
     )
     clonedBenefitMatrix.brand = metadata.brand
     clonedBenefitMatrix.portfolio = metadata.portfolio
+    if (metadata.tariffNames) {
+      clonedBenefitMatrix.tariffNames = metadata.tariffNames
+    }
     benefitMatrix.value = clonedBenefitMatrix
   }
   router.push({ name: 'edit-benefit-matrix' })
@@ -142,16 +152,19 @@ async function addMetadataToBenefitMatrix(metadata: BenefitMatrixMetadata) {
     <v-card-title>
       Benefit Matrices
       <v-spacer></v-spacer>
-      <v-btn rounded="lg" elevation="2" color="primary" absolute bottom right @click="$refs.fileUpload.click()"> Upload
+      <v-btn rounded="lg" elevation="2" color="primary" @click="onAddBenefitMatrix" class="pa0ma3"> Add
+      </v-btn>
+      <v-btn rounded="lg" elevation="2" color="primary" @click="$refs.fileUpload.click()"> Upload
       </v-btn>
       <v-file-input id="fileUpload" ref="fileUpload" accept="application/vnd.ms-excel, application/msexcel, application/x-msexcel, application/x-ms-excel, 
     application/x-excel, application/x-dos_ms_excel, application/xls, application/x-xls,
     application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" label="Click here to select a file to upload"
-        outlined @change="onFileUpload" show-size placeholder="Pick a file to upload" style="display:none">
+        outlined @change="onUploadBenefitMatrix" show-size placeholder="Pick a file to upload" style="display:none">
       </v-file-input>
     </v-card-title>
 
-    <MetadataDialog ref="dialog" @confirm='addMetadataToBenefitMatrix' :metadata="metadata" />
+    <MetadataDialog ref="dialog" @confirm='addMetadataToBenefitMatrix' :addTariffsEnabled="addTariffsEnabled"
+      :metadata="metadata" />
 
     <p v-if="loading">Loading posts...</p>
     <p v-if="error">{{ error.message }}</p>

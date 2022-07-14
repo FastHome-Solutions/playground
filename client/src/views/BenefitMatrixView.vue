@@ -31,17 +31,24 @@ onBeforeRouteUpdate(async (to, from) => {
 
 const columnDefs = ref(null)
 
-const editMode = ref(route.params.id === undefined)
+const editMode = ref(route.params.id === undefined) // editing is in progress when a device configuration is added/deleted/edited or a new BM hasn't been uploaded yet
 let editingNewBenefitMatrix = editMode.value
-const uploadMode = ref(editMode.value && !benefitMatrix.value._id)
-if (uploadMode.value) {
+let addBenefitMatrixMode = editMode.value && !benefitMatrix.value._id // either adding a file by upload or manually
+if (addBenefitMatrixMode) {
     setColDefs()
+}
+
+if (!editMode.value) { // display data regularly
+    updateData(route.params.id)
+} else {
+    if (!addBenefitMatrixMode) { // clone mode needs a server call to enrich the BM
+        updateData(benefitMatrix.value._id)
+    }
 }
 
 const rowData = computed(() => benefitMatrixToRowData(benefitMatrix.value))
 
 function updateData(id: String) {
-    rowData.value = null
     const benefitMatrixBeforeUpdate = cloneDeep(benefitMatrix)
     fetchBenefitMatrixFromServer(id)
         .then(() => {
@@ -176,18 +183,11 @@ function setColDefs() {
 
     function editCellRenderer(params) {
         let eGui = document.createElement('div');
-        eGui.innerHTML = `<button data-action="edit" >Edit</button> 
-        <button data-action="clone" style="margin-left:10px;">Clone</button>
-        <button data-action="delete" style="margin-left:10px;">Delete</button>`
+        eGui.innerHTML =
+            `<button data-action="edit" >Edit</button> 
+            <button data-action="clone" style="margin-left:10px;">Clone</button>
+            <button data-action="delete" style="margin-left:10px;">Delete</button>`
         return eGui;
-    }
-}
-
-if (!editMode.value) {
-    updateData(route.params.id)
-} else {
-    if (!uploadMode.value) {
-        updateData(benefitMatrix.value._id)
     }
 }
 
@@ -195,7 +195,7 @@ const dialog = ref(DeviceConfigurationDialog)
 const deletionConfirmationDialog = ref(ConfirmCancelDialog)
 const savingConfirmationDialog = ref(ConfirmCancelDialog)
 const addingDeviceConfiguration = ref(false)
-let selectedDeviceConfiguration = ref({} as BenefitMatrixRowData)
+const selectedDeviceConfiguration = ref({} as BenefitMatrixRowData)
 
 function cellClicked(event) {
     if (
@@ -203,19 +203,17 @@ function cellClicked(event) {
         event.event.target.dataset.action
     ) {
         let action = event.event.target.dataset.action
+        selectedDeviceConfiguration.value = event.data
         if (action === 'edit') {
             console.log('edit')
-            selectedDeviceConfiguration.value = event.data
             addingDeviceConfiguration.value = false
             dialog.value.showDialog()
         } else if (action === 'clone') {
             console.log('clone')
-            selectedDeviceConfiguration.value = event.data
             addingDeviceConfiguration.value = true
             dialog.value.showDialog()
         } else if (action === 'delete') {
             console.log('delete')
-            selectedDeviceConfiguration.value = event.data
             deletionConfirmationDialog.value.showDialog()
         }
     }
@@ -280,6 +278,8 @@ function deleteDeviceConfiguration(deviceConfigurationToDelete: BenefitMatrixRow
 function addDeviceConfiguration(updatedDeviceConfiguration: BenefitMatrixRowData): BenefitMatrixInputType {
     // Cloning because Apollo return values are immutable by design
     const clonedBenefitMatrix = cloneDeep(benefitMatrix.value)
+
+    if (!clonedBenefitMatrix.deviceConfigurations) { clonedBenefitMatrix.deviceConfigurations = [] }
 
     const deviceConfigurationToAddTo: DeviceConfigurationInputType = clonedBenefitMatrix.deviceConfigurations.find(deviceConfiguration => {
         return deviceConfiguration.deviceName === updatedDeviceConfiguration.deviceName && deviceConfiguration.manufacturer === updatedDeviceConfiguration.manufacturer
@@ -399,21 +399,21 @@ function deviceConfigurationToContract(deviceConfiguration: BenefitMatrixRowData
     )
 }
 
-function cancel() {
+function onCancel() {
     benefitMatrix.value = null
     editMode.value = false
-    uploadMode.value = false
+    addBenefitMatrixMode = false
     router.push({ name: 'benefit-matrices' })
 }
 
-function confirmSaving() {
+function onConfirmSaving() {
     if (editingNewBenefitMatrix) {
         uploadSpreadsheetToServer(benefitMatrix.value)
             .then(() => {
                 editMode.value = false
-                uploadMode.value = false
+                addBenefitMatrixMode = false
                 editingNewBenefitMatrix = false
-                router.push({ name: 'benefit-matrix', params: { id: benefitMatrix.value._id } })
+                router.replace({ name: 'benefit-matrix', params: { id: benefitMatrix.value._id } })
                 updateData(benefitMatrix.value._id)
             })
     } else {
@@ -424,24 +424,17 @@ function confirmSaving() {
     }
 }
 
-function save() {
+function onSave() {
     savingConfirmationDialog.value.showDialog()
 }
 
-function add() {
-    console.log('clone')
+function onAdd() {
+    console.log('add')
     const discounts = [] as BenefitMatrixDiscount[]
     const bundlePrices = [] as BenefitMatrixBundlePrice[]
     const tariffs = benefitMatrix.value.tariffNames.forEach(tariffName => {
-        discounts.push(new BenefitMatrixDiscount(
-            tariffName,
-            '',
-            0
-        ))
-        bundlePrices.push(new BenefitMatrixBundlePrice(
-            tariffName,
-            0
-        ))
+        discounts.push(new BenefitMatrixDiscount(tariffName, '', 0))
+        bundlePrices.push(new BenefitMatrixBundlePrice(tariffName, 0))
     })
     selectedDeviceConfiguration.value = new BenefitMatrixRowData('', '', 24, 0, 0, 0, discounts, bundlePrices)
     addingDeviceConfiguration.value = true
@@ -461,7 +454,7 @@ function add() {
                 <div class="text-h6">{{ `${benefitMatrix.brand} ${benefitMatrix.portfolio}` }}</div>
                 <div class="text-h6" v-if="benefitMatrix.period">
                     {{ `${moment(benefitMatrix.period.from).format("D MMM")} -
-                    ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                     }}
                 </div>
                 <v-card-text>
@@ -476,29 +469,30 @@ function add() {
 
         <ConfirmCancelDialog ref="deletionConfirmationDialog" @confirm="confirmDeletion"
             :text="'Do you really want to delete this item?'" />
-        <ConfirmCancelDialog ref="savingConfirmationDialog" @confirm="confirmSaving"
+        <ConfirmCancelDialog ref="savingConfirmationDialog" @confirm="onConfirmSaving"
             :text="'Please confirm you want to apply your changes'" />
 
         <v-spacer></v-spacer>
-        <v-btn rounded="lg" elevation="2" color="primary" absolute bottom right @click="add">
+        <v-btn rounded="lg" elevation="2" color="primary" absolute bottom right @click="onAdd">
             Add
         </v-btn>
         <div v-if="!editMode">
             <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{
-                `<- ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
-                    ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}` }}</v-btn>
+                    `<- ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
+                                ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}`
+            }}</v-btn>
                     <v-btn class="text-h6" v-if="benefitMatrix && benefitMatrix.period" disabled>
                         {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} -
-                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                                                ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                         }}</v-btn>
                     <v-btn class="text-h6" v-if="nextBenefitMatrix && nextBenefitMatrix.period" @click="openNext">{{
-                        `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
-                        ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
-                        }}</v-btn>
+                            `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
+                                            ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
+                    }}</v-btn>
         </div>
 
-        <v-btn class="text-h6" v-if="editMode" @click="cancel">Cancel</v-btn>
-        <v-btn class="text-h6" v-if="editMode" @click="save">Save</v-btn>
+        <v-btn class="text-h6" v-if="editMode" @click="onCancel">Cancel</v-btn>
+        <v-btn class="text-h6" v-if="editMode" @click="onSave">Save</v-btn>
 
         <v-snackbar v-model="error">
             {{ error.message }}

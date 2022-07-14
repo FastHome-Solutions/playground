@@ -61,11 +61,11 @@ export function parseMetadataSuggestions(filename: String, spreadsheet: [][]): B
     console.log('startDate ' + from)
     console.log('endDate ' + till)
 
-    const metadata = new SpreadsheetMetadata(new Date(from), new Date(till), 'Blau', 'Online', 'D76', 'N106')
+    const metadata = new BenefitMatrixMetadata(new Date(from), new Date(till), 'Blau', 'Online', null, 'D76', 'N106')
     return metadata
 }
 
-export function parseSpreadsheet(metadata: SpreadsheetMetadata, spreadsheet: [[]]): BenefitMatrixInputType {
+export function parseSpreadsheet(metadata: BenefitMatrixMetadata, spreadsheet: [[]]): BenefitMatrixInputType {
     const headerRowNumber = removeChars(metadata.rangeStart) - 1
     const lastContentRowNumber = metadata.rangeEnd.replace(/[^0-9]/gi, '') - 1
     const firstContentColumn = excelColumnToIndex(metadata.rangeStart) - 1
@@ -188,19 +188,15 @@ export class BenefitMatrixMetadata {
     till: Date
     brand: string
     portfolio: string
-    constructor(from: Date, till: Date, brand: string, portfolio: string) {
+    rangeStart: string
+    rangeEnd: string
+    tariffNames: string[]
+    constructor(from: Date, till: Date, brand: string, portfolio: string, tariffNames: string[], rangeStart: string, rangeEnd: string) {
         this.from = from
         this.till = till
         this.brand = brand
         this.portfolio = portfolio
-    }
-}
-
-export class SpreadsheetMetadata extends BenefitMatrixMetadata {
-    rangeStart: string
-    rangeEnd: string
-    constructor(from: Date, till: Date, brand: string, portfolio: string, rangeStart: string, rangeEnd: string) {
-        super(from, till, brand, portfolio)
+        this.tariffNames = tariffNames
         this.rangeStart = rangeStart
         this.rangeEnd = rangeEnd
     }
