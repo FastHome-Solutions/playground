@@ -13,6 +13,7 @@ import { ContractConfigurationInputType, TariffConfigurationInputType, DeviceCon
 import { BenefitMatrixBundlePrice, BenefitMatrixDiscount, BenefitMatrixRowData, benefitMatrixToRowData } from '@/components/benefit-matrix.businessmodel'
 import { cloneDeep } from '@apollo/client/utilities'
 import { computed } from '@vue/reactivity'
+import ConfirmCancelDialog from '@/components/ConfirmCancelDialog.vue'
 
 
 const benefitMatrixStore = useBenefitMatrixStore()
@@ -191,8 +192,11 @@ if (!editMode.value) {
 }
 
 const dialog = ref(DeviceConfigurationDialog)
+const deletionConfirmationDialog = ref(ConfirmCancelDialog)
+const savingConfirmationDialog = ref(ConfirmCancelDialog)
 const addingDeviceConfiguration = ref(false)
 let selectedDeviceConfiguration = ref({} as BenefitMatrixRowData)
+
 function cellClicked(event) {
     if (
         event.column.colId === 'edit' &&
@@ -211,7 +215,8 @@ function cellClicked(event) {
             dialog.value.showDialog()
         } else if (action === 'delete') {
             console.log('delete')
-            deleteDeviceConfiguration(selectedDeviceConfiguration.value = event.data)
+            selectedDeviceConfiguration.value = event.data
+            deletionConfirmationDialog.value.showDialog()
         }
     }
 }
@@ -232,6 +237,10 @@ function update(add: boolean, updatedDeviceConfiguration: BenefitMatrixRowData) 
     } else {
         benefitMatrix.value = editDeviceConfiguration(updatedDeviceConfiguration)
     }
+}
+
+function confirmDeletion() {
+    deleteDeviceConfiguration(selectedDeviceConfiguration.value)
 }
 
 function deleteDeviceConfiguration(deviceConfigurationToDelete: BenefitMatrixRowData) {
@@ -397,7 +406,7 @@ function cancel() {
     router.push({ name: 'benefit-matrices' })
 }
 
-function save() {
+function confirmSaving() {
     if (editingNewBenefitMatrix) {
         uploadSpreadsheetToServer(benefitMatrix.value)
             .then(() => {
@@ -413,6 +422,10 @@ function save() {
                 editMode.value = false
             })
     }
+}
+
+function save() {
+    savingConfirmationDialog.value.showDialog()
 }
 
 function add() {
@@ -448,7 +461,7 @@ function add() {
                 <div class="text-h6">{{ `${benefitMatrix.brand} ${benefitMatrix.portfolio}` }}</div>
                 <div class="text-h6" v-if="benefitMatrix.period">
                     {{ `${moment(benefitMatrix.period.from).format("D MMM")} -
-                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                    ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                     }}
                 </div>
                 <v-card-text>
@@ -461,23 +474,27 @@ function add() {
         <DeviceConfigurationDialog ref="dialog" @save="update" :add="addingDeviceConfiguration"
             :deviceConfiguration="selectedDeviceConfiguration" />
 
+        <ConfirmCancelDialog ref="deletionConfirmationDialog" @confirm="confirmDeletion"
+            :text="'Do you really want to delete this item?'" />
+        <ConfirmCancelDialog ref="savingConfirmationDialog" @confirm="confirmSaving"
+            :text="'Please confirm you want to apply your changes'" />
+
         <v-spacer></v-spacer>
         <v-btn rounded="lg" elevation="2" color="primary" absolute bottom right @click="add">
             Add
         </v-btn>
         <div v-if="!editMode">
             <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{
-                    `<- ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
-                                ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}`
-            }}</v-btn>
+                `<- ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
+                    ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}` }}</v-btn>
                     <v-btn class="text-h6" v-if="benefitMatrix && benefitMatrix.period" disabled>
                         {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} -
-                                                ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                         }}</v-btn>
                     <v-btn class="text-h6" v-if="nextBenefitMatrix && nextBenefitMatrix.period" @click="openNext">{{
-                            `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
-                                            ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
-                    }}</v-btn>
+                        `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
+                        ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
+                        }}</v-btn>
         </div>
 
         <v-btn class="text-h6" v-if="editMode" @click="cancel">Cancel</v-btn>
