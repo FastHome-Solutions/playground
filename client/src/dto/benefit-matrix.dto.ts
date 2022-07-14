@@ -35,13 +35,13 @@ export class DeviceConfigurationInputType {
     manufacturer: String
     deviceName: String
     tco: Number
-    contractConfigurations: ContractConfigurationDto[]
+    contractConfigurations: ContractConfigurationInputType[]
 
     constructor(
         manufacturer: String,
         deviceName: String,
         tco: Number,
-        contractConfigurations: ContractConfigurationDto[],
+        contractConfigurations: ContractConfigurationInputType[],
     ) {
         this.manufacturer = manufacturer
         this.deviceName = deviceName

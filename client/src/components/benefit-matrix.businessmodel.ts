@@ -49,12 +49,10 @@ export class BenefitMatrixDiscount {
 export class BenefitMatrixBundlePrice {
     tariffName: String
     bundlePrice: number
-    allBundlePrices: number[]
 
-    constructor(tariffName: string, bundlePrice: number, allBundlePrices: number[]) {
+    constructor(tariffName: string, bundlePrice: number) {
         this.tariffName = tariffName
         this.bundlePrice = bundlePrice
-        this.allBundlePrices = allBundlePrices
     }
 }
 
@@ -63,7 +61,7 @@ export function benefitMatrixToRowData(benefitMatrix: BenefitMatrixInputType): B
     if(! benefitMatrix || !benefitMatrix.deviceConfigurations) {
         return rows
     }
-    
+
     benefitMatrix.deviceConfigurations.forEach(
         deviceConfiguration => {
             deviceConfiguration.contractConfigurations.forEach(
@@ -87,7 +85,6 @@ export function benefitMatrixToRowData(benefitMatrix: BenefitMatrixInputType): B
                                         new BenefitMatrixBundlePrice(
                                             tariffConfiguration.name,
                                             tariffConfiguration.bundlePrices[i],
-                                            tariffConfiguration.bundlePrices,
                                         )
                                     )
                                 }

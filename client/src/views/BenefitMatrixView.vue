@@ -10,7 +10,7 @@ import { ref, watch } from 'vue'
 import router from '@/router'
 import DeviceConfigurationDialog from '@/components/DeviceConfigurationDialog.vue'
 import { ContractConfigurationInputType, TariffConfigurationInputType, DeviceConfigurationInputType, BenefitMatrixInputType } from '@/dto/benefit-matrix.dto'
-import { BenefitMatrixRowData, benefitMatrixToRowData } from '@/components/benefit-matrix.businessmodel'
+import { BenefitMatrixBundlePrice, BenefitMatrixDiscount, BenefitMatrixRowData, benefitMatrixToRowData } from '@/components/benefit-matrix.businessmodel'
 import { cloneDeep } from '@apollo/client/utilities'
 import { computed } from '@vue/reactivity'
 
@@ -402,7 +402,23 @@ function save() {
 }
 
 function add() {
-    // next step
+    console.log('clone')
+    const discounts = [] as BenefitMatrixDiscount[]
+    const bundlePrices = [] as BenefitMatrixBundlePrice[]
+    const tariffs = benefitMatrix.value.tariffNames.forEach(tariffName => {
+        discounts.push(new BenefitMatrixDiscount(
+            tariffName,
+            '',
+            0
+        ))
+        bundlePrices.push(new BenefitMatrixBundlePrice(
+            tariffName,
+            0
+        ))
+    })
+    selectedDeviceConfiguration.value = new BenefitMatrixRowData('', '', 24, 0, 0 , 0, discounts, bundlePrices)
+    addingDeviceConfiguration.value = true
+    dialog.value.showDialog() 
 }
 
 </script>
