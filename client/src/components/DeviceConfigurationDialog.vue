@@ -6,6 +6,10 @@ import DeviceConfigurationForm  from '@/components/DeviceConfigurationForm.vue'
 defineExpose({ showDialog })
 
 const props = defineProps({
+    add: {
+        type: Boolean,
+        required: true,
+    },
     deviceConfiguration: {
         type: BenefitMatrixRowData,
         required: true,
@@ -20,8 +24,8 @@ function showDialog() {
 
 const emit = defineEmits(['save',])
 
-function save(updatedDeviceConfiguration: BenefitMatrixRowData) {
-    emit('save', updatedDeviceConfiguration)
+function save(add: Boolean, updatedDeviceConfiguration: BenefitMatrixRowData) {
+    emit('save', add, updatedDeviceConfiguration)
     show.value = false
 }
 
@@ -33,7 +37,7 @@ function cancel() {
 <template>
     <div class=" text-center">
         <v-dialog v-model="show">
-            <DeviceConfigurationForm :deviceConfiguration="deviceConfiguration" @save="save" @cancel="cancel"></DeviceConfigurationForm>
+            <DeviceConfigurationForm :add="add" :deviceConfiguration="deviceConfiguration" @save="save" @cancel="cancel"></DeviceConfigurationForm>
         </v-dialog>
     </div>
 </template>

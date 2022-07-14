@@ -4,6 +4,10 @@ import { ref, watch } from 'vue'
 import { BenefitMatrixRowData } from './benefit-matrix.businessmodel';
 
 const props = defineProps({
+    add: {
+        type: Boolean,
+        required: true,
+    },
     deviceConfiguration: {
         type: BenefitMatrixRowData,
         required: true,
@@ -14,7 +18,7 @@ const clonedDeviceConfiguration = ref(cloneDeep(props.deviceConfiguration))
 const emit = defineEmits(['save', 'cancel'])
 
 function save() {
-    emit('save', clonedDeviceConfiguration.value)
+    emit('save', props.add, clonedDeviceConfiguration.value)
 }
 
 function cancel() {

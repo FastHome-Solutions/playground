@@ -9,7 +9,7 @@ import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 import { ref, watch } from 'vue'
 import router from '@/router'
 import DeviceConfigurationDialog from '@/components/DeviceConfigurationDialog.vue'
-import type { ContractConfigurationInputType, DeviceConfigurationInputType } from '@/dto/benefit-matrix.dto'
+import { ContractConfigurationInputType, TariffConfigurationInputType, DeviceConfigurationInputType, BenefitMatrixInputType } from '@/dto/benefit-matrix.dto'
 import { BenefitMatrixRowData, benefitMatrixToRowData } from '@/components/benefit-matrix.businessmodel'
 import { cloneDeep } from '@apollo/client/utilities'
 import { computed } from '@vue/reactivity'
@@ -32,8 +32,7 @@ const columnDefs = ref(null)
 
 const editMode = ref(route.params.id === undefined)
 const uploadMode = ref(editMode.value && !benefitMatrix.value._id)
-if(uploadMode.value) {
-    // benefitMatrix.value = benefitMatrixUnderEditing.value
+if (uploadMode.value) {
     setColDefs()
 }
 
@@ -44,7 +43,7 @@ function updateData(id: String) {
     const benefitMatrixBeforeUpdate = cloneDeep(benefitMatrix)
     fetchBenefitMatrixFromServer(id)
         .then(() => {
-            if(editMode.value) {
+            if (editMode.value) {
                 const clonedBenefitMatrix = cloneDeep(benefitMatrix.value)
                 clonedBenefitMatrix._id = undefined
                 clonedBenefitMatrix.period = benefitMatrixBeforeUpdate.value.period
@@ -164,11 +163,24 @@ function setColDefs() {
         headerClass: 'text-left',
         field: 'edit',
         cellClass: 'text-left',
-        width: 180,
-        minWidth: 130,
-        maxWidth: 250,
+        width: 80,
+        minWidth: 80,
+        maxWidth: 120,
         type: 'rightAligned',
         cellRenderer: editCellRenderer,
+        sortable: false,
+        filter: false
+    })
+    columnDefs.value.push({
+        headerName: 'Clone',
+        headerClass: 'text-left',
+        field: 'clone',
+        cellClass: 'text-left',
+        width: 90,
+        minWidth: 80,
+        maxWidth: 120,
+        type: 'rightAligned',
+        cellRenderer: cloneCellRenderer,
         sortable: false,
         filter: false
     })
@@ -178,19 +190,24 @@ function setColDefs() {
         eGui.innerHTML = `<button data-action="edit" >Edit</button>`
         return eGui;
     }
+
+    function cloneCellRenderer(params) {
+        let eGui = document.createElement('div');
+        eGui.innerHTML = `<button data-action="clone" >Clone</button>`
+        return eGui;
+    }
 }
 
 if (!editMode.value) {
     updateData(route.params.id)
 } else {
-    if (uploadMode.value) { 
-
-    } else { 
+    if (!uploadMode.value) {
         updateData(benefitMatrix.value._id)
     }
 }
 
 const dialog = ref(DeviceConfigurationDialog)
+const addingDeviceConfiguration = ref(false)
 let selectedDeviceConfiguration = ref({} as BenefitMatrixRowData)
 function cellClicked(event) {
     if (
@@ -201,6 +218,18 @@ function cellClicked(event) {
         if (action === 'edit') {
             console.log('edit')
             selectedDeviceConfiguration.value = event.data
+            addingDeviceConfiguration.value = false
+            dialog.value.showDialog()
+        }
+    } else if (
+        event.column.colId === 'clone' &&
+        event.event.target.dataset.action
+    ) {
+        let action = event.event.target.dataset.action
+        if (action === 'clone') {
+            console.log('clone')
+            selectedDeviceConfiguration.value = event.data
+            addingDeviceConfiguration.value = true
             dialog.value.showDialog()
         }
     }
@@ -214,7 +243,87 @@ function openNext() {
     router.push({ name: 'benefit-matrix', params: { id: nextBenefitMatrix.value._id } })
 }
 
-function update(updatedDeviceConfiguration: BenefitMatrixRowData) {
+function update(add: boolean, updatedDeviceConfiguration: BenefitMatrixRowData) {
+    editMode.value = true // from here on in edit mode
+
+    if (add === true) {
+        benefitMatrix.value = addDeviceConfiguration(updatedDeviceConfiguration)
+    } else {
+        benefitMatrix.value = editDeviceConfiguration(updatedDeviceConfiguration)
+    }
+}
+
+function addDeviceConfiguration(updatedDeviceConfiguration: BenefitMatrixRowData): BenefitMatrixInputType {
+    // Cloning because Apollo return values are immutable by design
+    const clonedBenefitMatrix = cloneDeep(benefitMatrix.value)
+
+    const deviceConfigurationToAddTo: DeviceConfigurationInputType = clonedBenefitMatrix.deviceConfigurations.find(deviceConfiguration => {
+        return deviceConfiguration.deviceName === updatedDeviceConfiguration.deviceName && deviceConfiguration.manufacturer === updatedDeviceConfiguration.manufacturer
+            && deviceConfiguration.tco === updatedDeviceConfiguration.tco
+    })
+    if (deviceConfigurationToAddTo) {
+        // device configuration hasn't changed, use existing one
+        const contractConfigurationToAddTo: ContractConfigurationInputType = deviceConfigurationToAddTo.contractConfigurations.find(contractConfiguration => {
+            return contractConfiguration.duration === updatedDeviceConfiguration.contractDuration
+        })
+        if (contractConfigurationToAddTo) {
+            // contract configuration hasn't changed, use existing one
+
+            let newUpfront = false
+            let newBundlePrice = false
+            if (contractConfigurationToAddTo.upfronts.indexOf(updatedDeviceConfiguration.upfront) === -1) { // Upfront has changed
+                newUpfront = true
+            }
+
+            contractConfigurationToAddTo.tariffConfigurations.forEach((tariffConfiguration, i) => {
+                let needNewTariffConfig = false
+                if (tariffConfiguration.discount === updatedDeviceConfiguration.discounts[i].discount) {
+                    // discount hasn't changed
+                } else {
+                    // create new tariff configuration
+                    needNewTariffConfig = true
+                }
+
+                if (tariffConfiguration.voucherName === updatedDeviceConfiguration.discounts[i].voucherName) {
+                    // voucher name didn't change
+                } else {
+                    // create new tariff configuration
+                    needNewTariffConfig = true
+                }
+
+                if (!needNewTariffConfig && tariffConfiguration.bundlePrices.indexOf(updatedDeviceConfiguration.bundlePrices[i].bundlePrice) === -1) { // Bundle price has changed
+                    // new bundle price
+                    newBundlePrice = true
+                }
+
+                if (needNewTariffConfig) {
+                    // If we need a new tariff config, since we can't add another one, we also need a new contract config 
+                    deviceConfigurationToAddTo.contractConfigurations.push(deviceConfigurationToContract(updatedDeviceConfiguration))
+                }
+            })
+            if (newUpfront || newBundlePrice) { // if there is a new upfront or a new bundle price, the upfront and all the bundle prices need to be added
+                contractConfigurationToAddTo.upfronts.push(updatedDeviceConfiguration.upfront)
+
+                contractConfigurationToAddTo.tariffConfigurations.forEach((tariffConfiguration, i) => {
+                    tariffConfiguration.bundlePrices.push(updatedDeviceConfiguration.bundlePrices[i].bundlePrice)
+                })
+            }
+
+        } else {
+            // create new contract config
+            deviceConfigurationToAddTo.contractConfigurations.push(deviceConfigurationToContract(updatedDeviceConfiguration))
+        }
+    } else {
+        // device configuration has changed, create new one
+        const newContractConfigurations = deviceConfigurationToContract(updatedDeviceConfiguration)
+        const newDeviceConfiguration = new DeviceConfigurationInputType(updatedDeviceConfiguration.manufacturer, updatedDeviceConfiguration.deviceName, updatedDeviceConfiguration.tco, [newContractConfigurations])
+        clonedBenefitMatrix.deviceConfigurations.push(newDeviceConfiguration)
+    }
+
+    return clonedBenefitMatrix
+}
+
+function editDeviceConfiguration(updatedDeviceConfiguration: BenefitMatrixRowData): BenefitMatrixInputType {
     // Cloning because Apollo return values are immutable by design
     const clonedBenefitMatrix = cloneDeep(benefitMatrix.value)
 
@@ -223,6 +332,7 @@ function update(updatedDeviceConfiguration: BenefitMatrixRowData) {
         return deviceConfiguration.deviceName === selectedDeviceConfiguration.value.deviceName && deviceConfiguration.manufacturer === selectedDeviceConfiguration.value.manufacturer
             && deviceConfiguration.tco === selectedDeviceConfiguration.value.tco
     })
+
     deviceConfigurationToUpdate.deviceName = updatedDeviceConfiguration.deviceName
     deviceConfigurationToUpdate.manufacturer = updatedDeviceConfiguration.manufacturer
     deviceConfigurationToUpdate.tco = updatedDeviceConfiguration.tco
@@ -241,9 +351,29 @@ function update(updatedDeviceConfiguration: BenefitMatrixRowData) {
         tariffConfiguration.bundlePrices[selectedBundlePriceIndex] = updatedDeviceConfiguration.bundlePrices[i].bundlePrice
     })
 
-    updateBenefitMatrixOnServer(clonedBenefitMatrix)
+    return clonedBenefitMatrix
 }
 
+function deviceConfigurationToTariff(deviceConfiguration: BenefitMatrixRowData) {
+    return deviceConfiguration.discounts.map((discount, i) => {
+        return new TariffConfigurationInputType(
+            discount.tariffName,
+            discount.discount,
+            discount.voucherName,
+            [deviceConfiguration.bundlePrices[i].bundlePrice]
+        )
+    })
+}
+
+function deviceConfigurationToContract(deviceConfiguration: BenefitMatrixRowData) {
+    const newTariffConfigurations = deviceConfigurationToTariff(deviceConfiguration)
+
+    return new ContractConfigurationInputType(
+        deviceConfiguration.contractDuration,
+        [deviceConfiguration.upfront],
+        newTariffConfigurations,
+    )
+}
 
 function cancel() {
     benefitMatrix.value = null
@@ -254,12 +384,16 @@ function cancel() {
 
 function save() {
     uploadSpreadsheetToServer(benefitMatrix.value)
-    .then(() => {
-        editMode.value = false
-        uploadMode.value = false
-        router.push({name: 'benefit-matrix', params: { id: benefitMatrix.value._id }})
-        updateData(benefitMatrix.value._id)
-    })
+        .then(() => {
+            editMode.value = false
+            uploadMode.value = false
+            router.push({ name: 'benefit-matrix', params: { id: benefitMatrix.value._id } })
+            updateData(benefitMatrix.value._id)
+        })
+}
+
+function add() {
+    // next step
 }
 
 </script>
@@ -275,7 +409,7 @@ function save() {
                 <div class="text-h6">{{ `${benefitMatrix.brand} ${benefitMatrix.portfolio}` }}</div>
                 <div class="text-h6" v-if="benefitMatrix.period">
                     {{ `${moment(benefitMatrix.period.from).format("D MMM")} -
-                    ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                     }}
                 </div>
                 <v-card-text>
@@ -285,24 +419,31 @@ function save() {
             </v-card>
         </div>
 
-        <DeviceConfigurationDialog ref="dialog" @save="update" :deviceConfiguration="selectedDeviceConfiguration" />
+        <DeviceConfigurationDialog ref="dialog" @save="update" :add="addingDeviceConfiguration"
+            :deviceConfiguration="selectedDeviceConfiguration" />
 
+        <v-spacer></v-spacer>
+        <v-btn rounded="lg" elevation="2" color="primary" absolute bottom right @click="add">
+            Add
+        </v-btn>
         <div v-if="!editMode">
             <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{
-                `<- ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
-                    ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}` }}</v-btn>
+                    `<- ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
+                                ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}`
+            }}</v-btn>
                     <v-btn class="text-h6" v-if="benefitMatrix && benefitMatrix.period" disabled>
                         {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} -
-                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                                                ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                         }}</v-btn>
                     <v-btn class="text-h6" v-if="nextBenefitMatrix && nextBenefitMatrix.period" @click="openNext">{{
-                        `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
-                        ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
-                        }}</v-btn>
+                            `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
+                                            ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
+                    }}</v-btn>
         </div>
 
         <v-btn class="text-h6" v-if="editMode" @click="cancel">Cancel</v-btn>
         <v-btn class="text-h6" v-if="editMode" @click="save">Save</v-btn>
+
         <v-snackbar v-model="error">
             {{ error.message }}
 
