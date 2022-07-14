@@ -61,11 +61,11 @@ export function parseMetadataSuggestions(filename: String, spreadsheet: [][]): B
     console.log('startDate ' + from)
     console.log('endDate ' + till)
 
-    const metadata = new BenefitMatrixMetadata(new Date(from), new Date(till), 'D76', 'N106', 'Online')
+    const metadata = new SpreadsheetMetadata(new Date(from), new Date(till), 'Blau', 'Online', 'D76', 'N106')
     return metadata
 }
 
-export function parseSpreadsheet(metadata: BenefitMatrixMetadata, spreadsheet: [[]]): BenefitMatrixInputType {
+export function parseSpreadsheet(metadata: SpreadsheetMetadata, spreadsheet: [[]]): BenefitMatrixInputType {
     const headerRowNumber = removeChars(metadata.rangeStart) - 1
     const lastContentRowNumber = metadata.rangeEnd.replace(/[^0-9]/gi, '') - 1
     const firstContentColumn = excelColumnToIndex(metadata.rangeStart) - 1
@@ -119,7 +119,7 @@ export function parseSpreadsheet(metadata: BenefitMatrixMetadata, spreadsheet: [
                     tariffNames[i], // tariffName
                     row[firstContentColumn + firstDiscountIndex + i], // discount
                     row[firstContentColumn + firstDiscountIndex + i] + '', // voucherName. For blau, currently equals to discount
-                    row[firstBundlePriceColumn + i], // bundlePrice
+                    [row[firstBundlePriceColumn + i]], // bundlePrice
                 )
             )
         }
@@ -152,7 +152,7 @@ export function parseSpreadsheet(metadata: BenefitMatrixMetadata, spreadsheet: [
     }
 
     const benefitMatrixDto = new BenefitMatrixInputType(
-        'Blau', // TODO
+        metadata.brand,
         period,
         metadata.portfolio,
         tariffNames,
@@ -184,16 +184,24 @@ function removeLineBreaks(stringWithBreaks: string): string {
 }
 
 export class BenefitMatrixMetadata {
-    from: Date;
-    till: Date;
-    rangeStart: string;
-    rangeEnd: string;
-    portfolio: string;
-    constructor(from: Date, till: Date, rangeStart: string, rangeEnd: string, portfolio: string) {
+    from: Date
+    till: Date
+    brand: string
+    portfolio: string
+    constructor(from: Date, till: Date, brand: string, portfolio: string) {
         this.from = from
         this.till = till
+        this.brand = brand
+        this.portfolio = portfolio
+    }
+}
+
+export class SpreadsheetMetadata extends BenefitMatrixMetadata {
+    rangeStart: string
+    rangeEnd: string
+    constructor(from: Date, till: Date, brand: string, portfolio: string, rangeStart: string, rangeEnd: string) {
+        super(from, till, brand, portfolio)
         this.rangeStart = rangeStart
         this.rangeEnd = rangeEnd
-        this.portfolio = portfolio
     }
 }

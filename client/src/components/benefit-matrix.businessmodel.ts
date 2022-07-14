@@ -60,7 +60,10 @@ export class BenefitMatrixBundlePrice {
 
 export function benefitMatrixToRowData(benefitMatrix: BenefitMatrixInputType): BenefitMatrixRowData[] {
     const rows: BenefitMatrixRowData[] = []
-
+    if(! benefitMatrix || !benefitMatrix.deviceConfigurations) {
+        return rows
+    }
+    
     benefitMatrix.deviceConfigurations.forEach(
         deviceConfiguration => {
             deviceConfiguration.contractConfigurations.forEach(

@@ -20,8 +20,7 @@ const { benefitMatrix, loading, error } = storeToRefs(benefitMatrixStore)
 const { previousBenefitMatrix } = storeToRefs(benefitMatrixStore)
 const { nextBenefitMatrix } = storeToRefs(benefitMatrixStore)
 
-const { fetchBenefitMatrixFromServer } = useBenefitMatrixStore()
-const { updateBenefitMatrixOnServer } = useBenefitMatrixStore()
+const { updateBenefitMatrixOnServer, fetchBenefitMatrixFromServer, uploadSpreadsheetToServer } = useBenefitMatrixStore()
 
 const route = useRoute()
 
@@ -31,141 +30,165 @@ onBeforeRouteUpdate(async (to, from) => {
 
 const columnDefs = ref(null)
 
+const editMode = ref(route.params.id === undefined)
+const uploadMode = ref(editMode.value && !benefitMatrix.value._id)
+if(uploadMode.value) {
+    // benefitMatrix.value = benefitMatrixUnderEditing.value
+    setColDefs()
+}
+
 const rowData = computed(() => benefitMatrixToRowData(benefitMatrix.value))
-
-// const rows = benefitMatrixToRowData(benefitMatrix.value)
-// rowData.value = rows
-
 
 function updateData(id: String) {
     rowData.value = null
+    const benefitMatrixBeforeUpdate = cloneDeep(benefitMatrix)
     fetchBenefitMatrixFromServer(id)
         .then(() => {
-            columnDefs.value = [
-                {
-                    headerName: '',
-                    headerClass: 'text-center',
-                    pinned: 'left',
-                    colId: 'rowNo',
-                    cellClass: 'text-center',
-                    cellRenderer: (params) => params.node.childIndex + 1,
-                    editable: false,
-                    maxWidth: 40,
-                },
-                {
-                    headerName: 'Hersteller',
-                    headerClass: 'text-left',
-                    field: 'manufacturer',
-                    cellClass: 'text-left',
-                    width: 180,
-                    minWidth: 130,
-                    maxWidth: 250,
-                    type: 'rightAligned',
-                },
-                {
-                    headerName: 'Gerät',
-                    headerClass: 'text-left',
-                    field: 'deviceName',
-                    cellClass: 'text-left',
-                    width: 180,
-                    minWidth: 130,
-                    maxWidth: 250,
-                    type: 'rightAligned',
-                },
-                {
-                    headerName: 'Vertragslaufzeit',
-                    headerClass: 'text-left',
-                    field: 'contractDuration',
-                    cellClass: 'text-left',
-                    width: 130,
-                    minWidth: 130,
-                    maxWidth: 250,
-                    type: 'rightAligned',
-                },
-                {
-                    headerName: 'Anzahlung',
-                    headerClass: 'text-left',
-                    field: 'upfront',
-                    cellClass: 'text-left',
-                    width: 130,
-                    minWidth: 130,
-                    maxWidth: 250,
-                    type: 'rightAligned',
-                },
-                {
-                    headerName: 'Rate',
-                    headerClass: 'text-left',
-                    field: 'rate',
-                    cellClass: 'text-left',
-                    width: 130,
-                    minWidth: 130,
-                    maxWidth: 250,
-                    type: 'rightAligned',
-                },
-                {
-                    headerName: 'TCO',
-                    headerClass: 'text-left',
-                    field: 'tco',
-                    cellClass: 'text-left',
-                    width: 130,
-                    minWidth: 130,
-                    maxWidth: 250,
-                    type: 'rightAligned',
-                },
-            ]
-            benefitMatrix.value.tariffNames.forEach((tariffName: string, i: number) => {
-                columnDefs.value.push({
-                    headerName: tariffName,
-                    headerClass: 'text-left bg-purple-darken-2',
-                    field: 'discounts',
-                    valueGetter: params => {
-                        return params.data.discounts[i].discount
-                    },
-                    cellClass: 'text-left',
-                    width: 130,
-                    minWidth: 130,
-                    maxWidth: 250,
-                    type: 'rightAligned'
-                })
-            })
-            benefitMatrix.value.tariffNames.forEach((tariffName: string, i: number) => {
-                columnDefs.value.push({
-                    headerName: tariffName,
-                    headerClass: 'text-left bg-light-blue',
-                    field: 'bundlePrices',
-                    valueGetter: params => {
-                        return params.data.bundlePrices[i].bundlePrice
-                    },
-                    cellClass: 'text-left',
-                    width: 130,
-                    minWidth: 130,
-                    maxWidth: 250,
-                    type: 'rightAligned'
-                })
-            })
-            columnDefs.value.push({
-                headerName: 'Edit',
-                headerClass: 'text-left',
-                field: 'edit',
-                cellClass: 'text-left',
-                width: 180,
-                minWidth: 130,
-                maxWidth: 250,
-                type: 'rightAligned',
-                cellRenderer: editCellRenderer,
-                sortable: false,
-                filter: false
-            })
-
-            function editCellRenderer(params) {
-                let eGui = document.createElement('div');
-                eGui.innerHTML = `<button data-action="edit" >Edit</button>`
-                return eGui;
+            if(editMode.value) {
+                const clonedBenefitMatrix = cloneDeep(benefitMatrix.value)
+                clonedBenefitMatrix._id = undefined
+                clonedBenefitMatrix.period = benefitMatrixBeforeUpdate.value.period
+                clonedBenefitMatrix.brand = benefitMatrixBeforeUpdate.value.brand
+                clonedBenefitMatrix.portfolio = benefitMatrixBeforeUpdate.value.portfolio
+                benefitMatrix.value = clonedBenefitMatrix
             }
+            setColDefs()
         })
 }
 
-updateData(route.params.id)
+function setColDefs() {
+    columnDefs.value = [
+        {
+            headerName: '',
+            headerClass: 'text-center',
+            pinned: 'left',
+            colId: 'rowNo',
+            cellClass: 'text-center',
+            cellRenderer: (params) => params.node.childIndex + 1,
+            editable: false,
+            maxWidth: 40,
+        },
+        {
+            headerName: 'Hersteller',
+            headerClass: 'text-left',
+            field: 'manufacturer',
+            cellClass: 'text-left',
+            width: 180,
+            minWidth: 130,
+            maxWidth: 250,
+            type: 'rightAligned',
+        },
+        {
+            headerName: 'Gerät',
+            headerClass: 'text-left',
+            field: 'deviceName',
+            cellClass: 'text-left',
+            width: 180,
+            minWidth: 130,
+            maxWidth: 250,
+            type: 'rightAligned',
+        },
+        {
+            headerName: 'Vertragslaufzeit',
+            headerClass: 'text-left',
+            field: 'contractDuration',
+            cellClass: 'text-left',
+            width: 130,
+            minWidth: 130,
+            maxWidth: 250,
+            type: 'rightAligned',
+        },
+        {
+            headerName: 'Anzahlung',
+            headerClass: 'text-left',
+            field: 'upfront',
+            cellClass: 'text-left',
+            width: 130,
+            minWidth: 130,
+            maxWidth: 250,
+            type: 'rightAligned',
+        },
+        {
+            headerName: 'Rate',
+            headerClass: 'text-left',
+            field: 'rate',
+            cellClass: 'text-left',
+            width: 130,
+            minWidth: 130,
+            maxWidth: 250,
+            type: 'rightAligned',
+        },
+        {
+            headerName: 'TCO',
+            headerClass: 'text-left',
+            field: 'tco',
+            cellClass: 'text-left',
+            width: 130,
+            minWidth: 130,
+            maxWidth: 250,
+            type: 'rightAligned',
+        },
+    ]
+    benefitMatrix.value.tariffNames.forEach((tariffName: string, i: number) => {
+        columnDefs.value.push({
+            headerName: tariffName,
+            headerClass: 'text-left bg-purple-darken-2',
+            field: 'discounts',
+            valueGetter: params => {
+                return params.data.discounts[i].discount
+            },
+            cellClass: 'text-left',
+            width: 130,
+            minWidth: 130,
+            maxWidth: 250,
+            type: 'rightAligned'
+        })
+    })
+    benefitMatrix.value.tariffNames.forEach((tariffName: string, i: number) => {
+        columnDefs.value.push({
+            headerName: tariffName,
+            headerClass: 'text-left bg-light-blue',
+            field: 'bundlePrices',
+            valueGetter: params => {
+                return params.data.bundlePrices[i].bundlePrice
+            },
+            cellClass: 'text-left',
+            width: 130,
+            minWidth: 130,
+            maxWidth: 250,
+            type: 'rightAligned'
+        })
+    })
+    columnDefs.value.push({
+        headerName: 'Edit',
+        headerClass: 'text-left',
+        field: 'edit',
+        cellClass: 'text-left',
+        width: 180,
+        minWidth: 130,
+        maxWidth: 250,
+        type: 'rightAligned',
+        cellRenderer: editCellRenderer,
+        sortable: false,
+        filter: false
+    })
+
+    function editCellRenderer(params) {
+        let eGui = document.createElement('div');
+        eGui.innerHTML = `<button data-action="edit" >Edit</button>`
+        return eGui;
+    }
+}
+
+if (!editMode.value) {
+    updateData(route.params.id)
+} else {
+    if (uploadMode.value) { 
+
+    } else { 
+        updateData(benefitMatrix.value._id)
+    }
+}
 
 const dialog = ref(DeviceConfigurationDialog)
 let selectedDeviceConfiguration = ref({} as BenefitMatrixRowData)
@@ -221,6 +244,24 @@ function update(updatedDeviceConfiguration: BenefitMatrixRowData) {
     updateBenefitMatrixOnServer(clonedBenefitMatrix)
 }
 
+
+function cancel() {
+    benefitMatrix.value = null
+    editMode.value = false
+    uploadMode.value = false
+    router.push({ name: 'benefit-matrices' })
+}
+
+function save() {
+    uploadSpreadsheetToServer(benefitMatrix.value)
+    .then(() => {
+        editMode.value = false
+        uploadMode.value = false
+        router.push({name: 'benefit-matrix', params: { id: benefitMatrix.value._id }})
+        updateData(benefitMatrix.value._id)
+    })
+}
+
 </script>
 
 <template>
@@ -234,7 +275,7 @@ function update(updatedDeviceConfiguration: BenefitMatrixRowData) {
                 <div class="text-h6">{{ `${benefitMatrix.brand} ${benefitMatrix.portfolio}` }}</div>
                 <div class="text-h6" v-if="benefitMatrix.period">
                     {{ `${moment(benefitMatrix.period.from).format("D MMM")} -
-                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                    ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
                     }}
                 </div>
                 <v-card-text>
@@ -246,27 +287,30 @@ function update(updatedDeviceConfiguration: BenefitMatrixRowData) {
 
         <DeviceConfigurationDialog ref="dialog" @save="update" :deviceConfiguration="selectedDeviceConfiguration" />
 
-        <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{ `<-
-                        ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
-                        ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}`
-        }}</v-btn>
-                <v-btn class="text-h6" v-if="benefitMatrix && benefitMatrix.period" disabled>
-                    {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} -
-                                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
-                    }}</v-btn>
-                <v-btn class="text-h6" v-if="nextBenefitMatrix && nextBenefitMatrix.period" @click="openNext">{{
+        <div v-if="!editMode">
+            <v-btn class="text-h6" v-if="previousBenefitMatrix && previousBenefitMatrix.period" @click="openPrevious">{{
+                `<- ${moment(previousBenefitMatrix.period.from).format("D MMM")} -
+                    ${moment(previousBenefitMatrix.period.till).format("D MMM YYYY")}` }}</v-btn>
+                    <v-btn class="text-h6" v-if="benefitMatrix && benefitMatrix.period" disabled>
+                        {{ ` ${moment(benefitMatrix.period.from).format("D MMM")} -
+                        ${moment(benefitMatrix.period.till).format("D MMM YYYY")}`
+                        }}</v-btn>
+                    <v-btn class="text-h6" v-if="nextBenefitMatrix && nextBenefitMatrix.period" @click="openNext">{{
                         `${moment(nextBenefitMatrix.period.from).format("D MMM")} -
-                                    ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
-                }}</v-btn>
+                        ${moment(nextBenefitMatrix.period.till).format("D MMM YYYY")} ->`
+                        }}</v-btn>
+        </div>
 
-                <v-snackbar v-model="error">
-                    {{ error.message }}
+        <v-btn class="text-h6" v-if="editMode" @click="cancel">Cancel</v-btn>
+        <v-btn class="text-h6" v-if="editMode" @click="save">Save</v-btn>
+        <v-snackbar v-model="error">
+            {{ error.message }}
 
-                    <template v-slot:action="{ attrs }">
-                        <v-btn color="pink" text v-bind="attrs" @click="snackbar = false">
-                            Close
-                        </v-btn>
-                    </template>
-                </v-snackbar>
+            <template v-slot:action="{ attrs }">
+                <v-btn color="pink" text v-bind="attrs" @click="snackbar = false">
+                    Close
+                </v-btn>
+            </template>
+        </v-snackbar>
     </main>
 </template>

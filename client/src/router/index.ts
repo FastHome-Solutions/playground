@@ -22,6 +22,11 @@ const router = createRouter({
       component: BenefitMatrixView,
     },
     {
+      path: "/benefit-matrix",
+      name: "edit-benefit-matrix",
+      component: BenefitMatrixView,
+    },
+    {
       path: "/about",
       name: "about",
       // route level code-splitting

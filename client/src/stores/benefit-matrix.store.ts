@@ -172,5 +172,8 @@ export const useBenefitMatrixStore = defineStore('BenefitStore', {
         this.loading = false
       })
     },
+    editBenefitMatrix(benefitMatrix: BenefitMatrixInputType) {
+      this.benefitMatrix = benefitMatrix
+    }
   },
 });
