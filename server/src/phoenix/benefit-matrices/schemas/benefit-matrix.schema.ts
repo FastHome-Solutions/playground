@@ -19,7 +19,7 @@ class Period {
 @Schema({ collection: 'benefit-matrices' })
 export class BenefitMatrix {
 
-  @Field(type => ID)
+  @Field(type => ID, { nullable: true })
   _id: Types.ObjectId
 
   @Field()
