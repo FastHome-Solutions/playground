@@ -122,6 +122,7 @@ async function onUploadBenefitMatrix(event) {
 const addTariffsEnabled = ref(false)
 function onAddBenefitMatrix() {
   addTariffsEnabled.value = true
+  metadata.value = new BenefitMatrixMetadata(new Date(), new Date(), 'Blau', 'Online', [] as String[], null, null) 
   dialog.value.showDialog()
 }
 
