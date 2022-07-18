@@ -33,17 +33,14 @@ if (spreadsheetMetadataRequired) {
 const portfolioItems = ['Online', 'Offline']
 const brandItems = ['Blau', 'O2']
 
-const dateRules = [
-    v => (v && moment(v, dateFormat, true).isValid()) || 'Please enter a date in the format ' + dateFormat,
-]
-
-const rangeRules = [
-    v => (v && /^[A-Z0-9]+$/i.test(v)) || 'Input must be in Excel format (e.g "D9")',
-]
-
-const portfolioRules = [
-    v => (v) || 'Please select a portfolio.'
-]
+const rules = {
+    notEmpty: value => !!value || 'Required.',
+    notZero: value => value !== 0 || 'Cannot be zero',
+    positive: value => value > 0 || 'Must be positive',
+    validDate: value => (moment(value, dateFormat, true).isValid()) || 'Please enter a date in the format ' + dateFormat,
+    validDateRange: value => (moment(from.value, dateFormat, true).isBefore(moment(till.value, dateFormat, true)) || 'From date must be before till date'),
+    validExcelCellFormat: value => (v && /^[A-Z0-9]+$/i.test(v)) || 'Input must be in Excel format (e.g "D9")',
+}
 
 const tariffNames = ref([] as {}[]) 
 async function confirm() {
@@ -69,7 +66,10 @@ function addNewTariff() {
                 <v-container>
                     <v-row>
                         <v-col cols="12" sm="6" md="6">
-                            <v-text-field label="From*" required v-model="from" :rules="dateRules">
+                            <v-text-field label="From*" required v-model="from"
+                                :rules="[rules.notEmpty, rules.validDate, rules.validDateRange]"
+                                :onchange="onFromChange"
+                                >
                             </v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6" md="6">
