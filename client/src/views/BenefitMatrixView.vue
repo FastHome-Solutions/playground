@@ -432,7 +432,7 @@ function onAdd() {
     console.log('add')
     const discounts = [] as BenefitMatrixDiscount[]
     const bundlePrices = [] as BenefitMatrixBundlePrice[]
-    const tariffs = benefitMatrix.value.tariffNames.forEach(tariffName => {
+    benefitMatrix.value.tariffNames.forEach(tariffName => {
         discounts.push(new BenefitMatrixDiscount(tariffName, '', 0))
         bundlePrices.push(new BenefitMatrixBundlePrice(tariffName, 0))
     })
